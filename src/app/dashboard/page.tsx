@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { PlusCircle, ArrowRight } from "lucide-react";
+import { PlusCircle, ArrowRight, Settings2, Scale } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -108,6 +108,24 @@ export default async function DashboardPage() {
             >
               <ArrowRight className="size-4" />
               View all expenses
+            </Button>
+            <Button
+              variant="outline"
+              render={<Link href="/dashboard/budget" />}
+              nativeButton={false}
+              className="justify-start gap-2"
+            >
+              <Scale className="size-4" />
+              Budget vs. Actual
+            </Button>
+            <Button
+              variant="outline"
+              render={<Link href="/dashboard/budget/master" />}
+              nativeButton={false}
+              className="justify-start gap-2"
+            >
+              <Settings2 className="size-4" />
+              Set up your budget
             </Button>
           </CardContent>
         </Card>

@@ -2,7 +2,7 @@ import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, PlusCircle, List, Scale, Settings2 } from "lucide-react";
+import { LayoutDashboard, PlusCircle, List, Scale, Settings2, BarChart3 } from "lucide-react";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -10,6 +10,7 @@ const navLinks = [
   { href: "/dashboard/expenses", label: "Expenses", icon: List },
   { href: "/dashboard/budget", label: "Budget", icon: Scale },
   { href: "/dashboard/budget/master", label: "Set Budget", icon: Settings2 },
+  { href: "/dashboard/charts", label: "Charts", icon: BarChart3 },
 ];
 
 export default async function DashboardLayout({

@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Auth.js Models ───────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+
+  accounts Account[]
+  sessions Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Domain Models ────────────────────────────────────────────
+
+model Category {
+  id       String  @id @default(cuid())
+  name     String
+  type     String  // "income", "fixed", "variable", "tax", "savings"
+  parentId String?
+  sort     Int     @default(0)
+  active   Boolean @default(true)
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+
+  masterBudgets        MasterBudget[]
+  budgets              Budget[]
+  expenses             Expense[]
+  categorizationRules  CategorizationRule[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MasterBudget {
+  id         String @id @default(cuid())
+  categoryId String
+  year       Int
+  amount     Float
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, year])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Budget {
+  id         String  @id @default(cuid())
+  categoryId String
+  year       Int
+  month      Int     // 1-12
+  amount     Float
+  isOverride Boolean @default(false)
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, year, month])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Expense {
+  id          String  @id @default(cuid())
+  categoryId  String
+  amount      Float
+  date        DateTime
+  description String?
+  source      String   @default("manual") // "manual", "csv", "pdf"
+  statementId String?
+  reviewed    Boolean  @default(false)
+
+  category  Category           @relation(fields: [categoryId], references: [id])
+  statement UploadedStatement? @relation(fields: [statementId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UploadedStatement {
+  id            String @id @default(cuid())
+  filename      String
+  fileType      String // "csv", "pdf"
+  status        String @default("pending") // "pending", "processing", "review", "committed", "failed"
+  parsedRows    Int    @default(0)
+  committedRows Int    @default(0)
+
+  expenses Expense[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CategorizationRule {
+  id         String @id @default(cuid())
+  keyword    String
+  categoryId String
+  priority   Int    @default(0)
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

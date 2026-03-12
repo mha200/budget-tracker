@@ -2,12 +2,14 @@ import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, PlusCircle, List } from "lucide-react";
+import { LayoutDashboard, PlusCircle, List, Scale, Settings2 } from "lucide-react";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/expenses/new", label: "Add Expense", icon: PlusCircle },
   { href: "/dashboard/expenses", label: "Expenses", icon: List },
+  { href: "/dashboard/budget", label: "Budget", icon: Scale },
+  { href: "/dashboard/budget/master", label: "Set Budget", icon: Settings2 },
 ];
 
 export default async function DashboardLayout({

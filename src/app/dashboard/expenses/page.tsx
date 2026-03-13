@@ -17,6 +17,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Trash2, Pencil, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { getExpenses, getCategories, deleteExpense, updateExpense, createExpense } from "./actions";
+import { DescriptionAutocomplete } from "@/components/description-autocomplete";
 
 type Category = {
   id: string;
@@ -153,6 +154,16 @@ export default function ExpensesPage() {
     });
   }
 
+  function handleSuggestionSelect(suggestion: {
+    description: string | null;
+    amount: number;
+    categoryId: string;
+  }) {
+    setAddAmount(String(suggestion.amount));
+    setAddCategory(suggestion.categoryId);
+    if (suggestion.description) setAddDescription(suggestion.description);
+  }
+
   function handleInlineAdd() {
     const formData = new FormData();
     formData.set("amount", addAmount);
@@ -244,63 +255,69 @@ export default function ExpensesPage() {
             <CardTitle className="text-base">Quick Add</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-3 items-end">
+            <div className="space-y-3">
               <div className="space-y-1">
-                <Label className="text-sm">Amount</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  value={addAmount}
-                  onChange={(e) => setAddAmount(e.target.value)}
-                  placeholder="0.00"
-                  className="w-28"
-                  autoFocus
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-sm">Category</Label>
-                <Select
-                  value={addCategory}
-                  onValueChange={(val) => setAddCategory(val ?? "")}
-                >
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Select..." displayValue={addCategory ? getCategoryLabelById(addCategory) : undefined} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(grouped).map(([group, cats]) => (
-                      <SelectGroup key={group}>
-                        <SelectLabel>{group}</SelectLabel>
-                        {cats.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id} label={categoryLabel(cat)}>
-                            {categoryLabel(cat)}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-sm">Date</Label>
-                <Input
-                  type="date"
-                  value={addDate}
-                  onChange={(e) => setAddDate(e.target.value)}
-                  className="w-36"
-                />
-              </div>
-              <div className="space-y-1 flex-1 min-w-[120px]">
                 <Label className="text-sm">Description</Label>
-                <Input
+                <DescriptionAutocomplete
                   value={addDescription}
-                  onChange={(e) => setAddDescription(e.target.value)}
-                  placeholder="e.g. Paycheck, groceries..."
+                  onChange={setAddDescription}
+                  onSelect={handleSuggestionSelect}
+                  placeholder="Start typing to see past transactions..."
+                  autoFocus
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") handleInlineAdd();
+                    if (e.key === "Enter" && addAmount && addCategory) handleInlineAdd();
                     if (e.key === "Escape") setShowAdd(false);
                   }}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Past matches will auto-fill amount and category
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 items-end">
+                <div className="space-y-1">
+                  <Label className="text-sm">Amount</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={addAmount}
+                    onChange={(e) => setAddAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="w-28"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm">Category</Label>
+                  <Select
+                    value={addCategory}
+                    onValueChange={(val) => setAddCategory(val ?? "")}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Select..." displayValue={addCategory ? getCategoryLabelById(addCategory) : undefined} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(grouped).map(([group, cats]) => (
+                        <SelectGroup key={group}>
+                          <SelectLabel>{group}</SelectLabel>
+                          {cats.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id} label={categoryLabel(cat)}>
+                              {categoryLabel(cat)}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm">Date</Label>
+                  <Input
+                    type="date"
+                    value={addDate}
+                    onChange={(e) => setAddDate(e.target.value)}
+                    className="w-36"
+                  />
+                </div>
               </div>
             </div>
             <div className="flex gap-2 mt-3">

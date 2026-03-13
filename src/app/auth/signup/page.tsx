@@ -46,9 +46,9 @@ export default function SignUpPage() {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md animate-fade-up stagger-1">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Create Account</CardTitle>
+        <CardTitle className="font-display text-3xl">Create Account</CardTitle>
         <CardDescription>
           Sign up to start tracking your budget
         </CardDescription>

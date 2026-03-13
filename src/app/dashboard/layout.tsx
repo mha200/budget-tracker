@@ -18,7 +18,7 @@ export default async function DashboardLayout({
     <div className="min-h-screen flex flex-col bg-muted/30">
       <header className="border-b bg-background">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-primary">Budget Tracker</h1>
+          <h1 className="font-display text-xl text-primary">Budget Tracker</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
               {session.user.name || session.user.email}

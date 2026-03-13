@@ -166,7 +166,7 @@ export default function RecurringExpensesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <h2 className="text-3xl font-bold">Recurring Expenses</h2>
+        <h2 className="font-display text-4xl">Recurring Expenses</h2>
         <div className="flex gap-2">
           <Button
             variant="outline"

@@ -205,7 +205,7 @@ export default function ImportPage() {
   if (phase === "upload") {
     return (
       <div className="space-y-6">
-        <h2 className="text-3xl font-bold">Import CSV Statement</h2>
+        <h2 className="font-display text-4xl">Import CSV Statement</h2>
         <Card>
           <CardHeader>
             <CardTitle>Upload a CSV file</CardTitle>
@@ -249,7 +249,7 @@ export default function ImportPage() {
   if (phase === "done") {
     return (
       <div className="space-y-6">
-        <h2 className="text-3xl font-bold">Import Complete</h2>
+        <h2 className="font-display text-4xl">Import Complete</h2>
         <Card>
           <CardContent className="py-8 text-center space-y-4">
             <div className="inline-flex items-center justify-center size-16 rounded-full bg-green-100 text-green-600">
@@ -288,7 +288,7 @@ export default function ImportPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-3xl font-bold">Review Import</h2>
+          <h2 className="font-display text-4xl">Review Import</h2>
           <p className="text-sm text-muted-foreground mt-1">
             {totalParsed} transactions parsed from{" "}
             <span className="font-medium text-foreground">{filename}</span>

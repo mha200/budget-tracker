@@ -110,7 +110,7 @@ export default function NewExpensePage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold">Add Transaction</h2>
+      <h2 className="font-display text-4xl animate-fade-up stagger-1">Add Transaction</h2>
       <Card>
         <CardHeader>
           <CardTitle>Quick Entry</CardTitle>

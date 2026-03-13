@@ -261,7 +261,7 @@ export default function ChartsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <h2 className="text-3xl font-bold">Charts</h2>
+        <h2 className="font-display text-4xl">Charts</h2>
         <div className="flex gap-3 items-end">
           <div className="space-y-1">
             <Label className="text-sm">Month</Label>

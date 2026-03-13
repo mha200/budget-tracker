@@ -51,9 +51,9 @@ export default function SignInPage() {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md animate-fade-up stagger-1">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Sign In</CardTitle>
+        <CardTitle className="font-display text-3xl">Sign In</CardTitle>
         <CardDescription>
           Enter your credentials to access your budget
         </CardDescription>

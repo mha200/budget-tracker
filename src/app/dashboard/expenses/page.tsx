@@ -237,7 +237,7 @@ export default function ExpensesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold">Transactions</h2>
+        <h2 className="font-display text-4xl">Transactions</h2>
         <Button
           size="sm"
           className="gap-1.5"

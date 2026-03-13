@@ -132,7 +132,7 @@ function BudgetRow({
   }
 
   return (
-    <tr className={`border-b last:border-0 ${row.isParent ? "bg-primary/5" : ""}`}>
+    <tr className={`border-b last:border-0 ${row.isParent ? "bg-primary/5 [&>td:first-child]:pl-4" : ""}`}>
       <td className={`py-2.5 ${indent ? "pl-8" : ""}`}>
         {row.isParent ? (
           <span className="font-semibold text-foreground text-sm uppercase tracking-wide">{row.categoryName}</span>

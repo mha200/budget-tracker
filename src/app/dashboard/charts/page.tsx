@@ -167,11 +167,11 @@ function BudgetVsActualDrilldown({
               barGap={8}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" tickFormatter={(v) => formatAmount(v)} />
+              <XAxis type="number" tickFormatter={(v) => formatAmount(v)} tick={{ fontSize: 14 }} />
               <YAxis
                 type="category"
                 dataKey="category"
-                width={140}
+                width={150}
                 tick={({ x, y, payload }: { x: string | number; y: string | number; payload: { value: string } }) => {
                   const item = chartData.find((d) => d.category === payload.value);
                   const clickable = item?.isParent && !expanded;
@@ -181,7 +181,7 @@ function BudgetVsActualDrilldown({
                       y={y}
                       textAnchor="end"
                       dominantBaseline="central"
-                      fontSize={11}
+                      fontSize={14}
                       fontWeight={clickable ? 600 : 400}
                       fill={clickable ? "var(--color-primary)" : "var(--color-foreground)"}
                       style={clickable ? { cursor: "pointer" } : undefined}
@@ -320,8 +320,8 @@ export default function ChartsPage() {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={trend}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis tickFormatter={(v) => formatAmount(v)} />
+                <XAxis dataKey="month" tick={{ fontSize: 14 }} />
+                <YAxis tickFormatter={(v) => formatAmount(v)} tick={{ fontSize: 14 }} />
                 <Tooltip content={<CustomTooltipContent />} />
                 <Bar dataKey="total" name="Spent" fill="#2563eb" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -355,6 +355,8 @@ export default function ChartsPage() {
                     label={({ name, percent }) =>
                       `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
                     }
+                    labelLine={{ style: { fontSize: 14 } }}
+                    style={{ fontSize: 14 }}
                   >
                     {typeBreakdown.map((_, i) => (
                       <Cell
@@ -389,12 +391,12 @@ export default function ChartsPage() {
                   margin={{ left: 20 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" tickFormatter={(v) => formatAmount(v)} />
+                  <XAxis type="number" tickFormatter={(v) => formatAmount(v)} tick={{ fontSize: 14 }} />
                   <YAxis
                     type="category"
                     dataKey="name"
                     width={120}
-                    tick={{ fontSize: 12 }}
+                    tick={{ fontSize: 14 }}
                   />
                   <Tooltip content={<CustomTooltipContent />} />
                   <Bar dataKey="amount" name="Spent" fill="#16a34a" radius={[0, 4, 4, 0]} />

@@ -63,7 +63,7 @@ export default async function DashboardPage() {
           className="gap-1.5"
         >
           <PlusCircle className="size-4" />
-          Add Expense
+          Add Transaction
         </Button>
       </div>
 
@@ -98,7 +98,7 @@ export default async function DashboardPage() {
               className="justify-start gap-2"
             >
               <PlusCircle className="size-4" />
-              Add an expense
+              Add a transaction
             </Button>
             <Button
               variant="outline"
@@ -107,7 +107,7 @@ export default async function DashboardPage() {
               className="justify-start gap-2"
             >
               <ArrowRight className="size-4" />
-              View all expenses
+              View all transactions
             </Button>
             <Button
               variant="outline"
@@ -131,11 +131,11 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {/* Recent Expenses */}
+      {/* Recent Transactions */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Recent Expenses</CardTitle>
+            <CardTitle>Recent Transactions</CardTitle>
             {recentExpenses.length > 0 && (
               <Button
                 variant="ghost"
@@ -152,12 +152,12 @@ export default async function DashboardPage() {
         <CardContent>
           {recentExpenses.length === 0 ? (
             <p className="text-muted-foreground text-sm py-2">
-              No expenses yet.{" "}
+              No transactions yet.{" "}
               <Link
                 href="/dashboard/expenses/new"
                 className="text-primary underline"
               >
-                Add your first expense
+                Add your first transaction
               </Link>
               .
             </p>

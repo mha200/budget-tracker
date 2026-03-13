@@ -266,7 +266,7 @@ export default function BudgetPage() {
                   {group.items.map((item) => (
                     <tr
                       key={item.categoryId}
-                      className={`border-b last:border-0 ${item.isParent ? "bg-primary/5" : ""}`}
+                      className={`border-b last:border-0 ${item.isParent ? "bg-primary/5 [&>td:first-child]:pl-4" : ""}`}
                     >
                       <td className={`py-2.5 ${item.parentId ? "pl-8" : ""}`}>
                         {item.isParent ? (

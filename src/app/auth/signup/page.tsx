@@ -24,9 +24,16 @@ export default function SignUpPage() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    setLoading(true);
 
     const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    setLoading(true);
     const result = await signup(formData);
 
     setLoading(false);

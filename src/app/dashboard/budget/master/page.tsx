@@ -279,11 +279,11 @@ export default function MasterBudgetPage() {
               onValueChange={(val) => setYear(Number(val))}
             >
               <SelectTrigger className="w-24">
-                <SelectValue />
+                <SelectValue displayValue={String(year)} />
               </SelectTrigger>
               <SelectContent>
                 {[2025, 2026, 2027].map((y) => (
-                  <SelectItem key={y} value={String(y)}>
+                  <SelectItem key={y} value={String(y)} label={String(y)}>
                     {y}
                   </SelectItem>
                 ))}
@@ -324,11 +324,11 @@ export default function MasterBudgetPage() {
                 <Label className="text-sm">Type</Label>
                 <Select value={newType} onValueChange={(val) => setNewType(val ?? "variable")}>
                   <SelectTrigger className="w-40">
-                    <SelectValue />
+                    <SelectValue displayValue={TYPE_LABELS[newType] || newType} />
                   </SelectTrigger>
                   <SelectContent>
                     {TYPE_ORDER.map((t) => (
-                      <SelectItem key={t} value={t}>
+                      <SelectItem key={t} value={t} label={TYPE_LABELS[t]}>
                         {TYPE_LABELS[t]}
                       </SelectItem>
                     ))}
@@ -342,7 +342,7 @@ export default function MasterBudgetPage() {
                   onValueChange={(val) => setNewParentId(val ?? "")}
                 >
                   <SelectTrigger className="w-40">
-                    <SelectValue />
+                    <SelectValue displayValue={!newParentId || newParentId === NO_PARENT ? "None" : parentOptions.find((p) => p.categoryId === newParentId)?.categoryName || "None"} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NO_PARENT} label="None">None</SelectItem>

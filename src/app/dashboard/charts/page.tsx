@@ -270,11 +270,11 @@ export default function ChartsPage() {
               onValueChange={(val) => setMonth(Number(val ?? month))}
             >
               <SelectTrigger className="w-36">
-                <SelectValue />
+                <SelectValue displayValue={MONTHS[month - 1]} />
               </SelectTrigger>
               <SelectContent>
                 {MONTHS.map((name, i) => (
-                  <SelectItem key={i} value={String(i + 1)}>
+                  <SelectItem key={i} value={String(i + 1)} label={name}>
                     {name}
                   </SelectItem>
                 ))}
@@ -288,11 +288,11 @@ export default function ChartsPage() {
               onValueChange={(val) => setYear(Number(val ?? year))}
             >
               <SelectTrigger className="w-24">
-                <SelectValue />
+                <SelectValue displayValue={String(year)} />
               </SelectTrigger>
               <SelectContent>
                 {[2025, 2026, 2027].map((y) => (
-                  <SelectItem key={y} value={String(y)}>
+                  <SelectItem key={y} value={String(y)} label={String(y)}>
                     {y}
                   </SelectItem>
                 ))}

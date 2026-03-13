@@ -102,6 +102,11 @@ export default function RecurringExpensesPage() {
     return cat.parent ? `${cat.parent.name} > ${cat.name}` : cat.name;
   }
 
+  function getCategoryLabelById(id: string) {
+    const cat = categories.find((c) => c.id === id);
+    return cat ? categoryLabel(cat) : "";
+  }
+
   function handleAdd() {
     const formData = new FormData();
     formData.set("amount", amount);
@@ -212,7 +217,7 @@ export default function RecurringExpensesPage() {
                   onValueChange={(val) => setCategoryId(val ?? "")}
                 >
                   <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Select..." />
+                    <SelectValue placeholder="Select..." displayValue={categoryId ? getCategoryLabelById(categoryId) : undefined} />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(grouped).map(([group, cats]) => (
@@ -235,12 +240,12 @@ export default function RecurringExpensesPage() {
                   onValueChange={(val) => setFrequency(val ?? "monthly")}
                 >
                   <SelectTrigger className="w-32">
-                    <SelectValue />
+                    <SelectValue displayValue={frequency.charAt(0).toUpperCase() + frequency.slice(1)} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="yearly">Yearly</SelectItem>
+                    <SelectItem value="weekly" label="Weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly" label="Monthly">Monthly</SelectItem>
+                    <SelectItem value="yearly" label="Yearly">Yearly</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -67,6 +67,12 @@ export default function NewExpensePage() {
     {} as Record<string, Category[]>
   );
 
+  function getCategoryLabel(id: string) {
+    const cat = categories.find((c) => c.id === id);
+    if (!cat) return "";
+    return cat.parent ? `${cat.parent.name} > ${cat.name}` : cat.name;
+  }
+
   function handleSubmit(formData: FormData) {
     if (!selectedCategory) {
       toast.error("Please select a category");
@@ -125,7 +131,7 @@ export default function NewExpensePage() {
                 onValueChange={(val) => setSelectedCategory(val ?? "")}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a category" />
+                  <SelectValue placeholder="Select a category" displayValue={selectedCategory ? getCategoryLabel(selectedCategory) : undefined} />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.entries(grouped).map(([group, cats]) => (

@@ -216,6 +216,11 @@ export default function ExpensesPage() {
     return cat.parent ? `${cat.parent.name} > ${cat.name}` : cat.name;
   }
 
+  function getCategoryLabelById(id: string) {
+    const cat = categories.find((c) => c.id === id);
+    return cat ? categoryLabel(cat) : "";
+  }
+
   const total = expenses.reduce((sum, e) => sum + e.amount, 0);
 
   return (
@@ -260,7 +265,7 @@ export default function ExpensesPage() {
                   onValueChange={(val) => setAddCategory(val ?? "")}
                 >
                   <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Select..." />
+                    <SelectValue placeholder="Select..." displayValue={addCategory ? getCategoryLabelById(addCategory) : undefined} />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(grouped).map(([group, cats]) => (
@@ -325,7 +330,7 @@ export default function ExpensesPage() {
                 onValueChange={(val) => setCategoryFilter(val ?? ALL_CATEGORIES)}
               >
                 <SelectTrigger className="w-48">
-                  <SelectValue />
+                  <SelectValue displayValue={categoryFilter === ALL_CATEGORIES ? "All Categories" : getCategoryLabelById(categoryFilter)} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ALL_CATEGORIES} label="All Categories">
@@ -426,7 +431,7 @@ export default function ExpensesPage() {
                             onValueChange={(val) => setEditCategory(val ?? editCategory)}
                           >
                             <SelectTrigger className="w-48 h-8">
-                              <SelectValue />
+                              <SelectValue displayValue={editCategory ? getCategoryLabelById(editCategory) : undefined} />
                             </SelectTrigger>
                             <SelectContent>
                               {Object.entries(grouped).map(([group, cats]) => (

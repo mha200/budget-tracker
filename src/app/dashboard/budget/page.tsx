@@ -218,10 +218,25 @@ export default function BudgetPage() {
                 </thead>
                 <tbody>
                   {group.items.map((item) => (
-                    <tr key={item.categoryId} className="border-b last:border-0">
-                      <td className="py-2.5">{item.categoryName}</td>
-                      <td className="py-2.5 text-right">{formatAmount(item.budgeted)}</td>
-                      <td className="py-2.5 text-right">{formatAmount(item.actual)}</td>
+                    <tr
+                      key={item.categoryId}
+                      className={`border-b last:border-0 ${item.isParent ? "bg-primary/5" : ""}`}
+                    >
+                      <td className={`py-2.5 ${item.parentId ? "pl-8" : ""}`}>
+                        {item.isParent ? (
+                          <span className="font-semibold text-foreground text-[0.8125rem] uppercase tracking-wide">
+                            {item.categoryName}
+                          </span>
+                        ) : (
+                          item.categoryName
+                        )}
+                      </td>
+                      <td className={`py-2.5 text-right ${item.isParent ? "font-semibold" : ""}`}>
+                        {formatAmount(item.budgeted)}
+                      </td>
+                      <td className={`py-2.5 text-right ${item.isParent ? "font-semibold" : ""}`}>
+                        {formatAmount(item.actual)}
+                      </td>
                       <td className="py-2.5 text-right">
                         <DifferenceCell value={item.difference} type={item.type} />
                       </td>

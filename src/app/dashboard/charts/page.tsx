@@ -22,7 +22,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { ChevronLeft } from "lucide-react";
 import {
   getMonthlyTrend,
   getSpendingByType,
@@ -71,6 +73,160 @@ function CustomTooltipContent({
         </p>
       ))}
     </div>
+  );
+}
+
+const TYPE_FILTERS: { key: string; label: string }[] = [
+  { key: "fixed", label: "Fixed" },
+  { key: "variable", label: "Variable" },
+  { key: "tax", label: "Taxes" },
+  { key: "savings", label: "Savings" },
+];
+
+function BudgetVsActualDrilldown({
+  data,
+  month,
+  year,
+}: {
+  data: BudgetVsActualBar[];
+  month: string;
+  year: number;
+}) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [activeTypes, setActiveTypes] = useState<Set<string>>(
+    new Set(TYPE_FILTERS.map((t) => t.key))
+  );
+
+  function toggleType(key: string) {
+    setActiveTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        if (next.size > 1) next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }
+
+  const filtered = data.filter((d) => activeTypes.has(d.type));
+  const expanded = filtered.find((d) => d.id === expandedId);
+  const chartData = expanded?.children ?? filtered;
+  const title = expanded
+    ? `${expanded.category} — ${month} ${year}`
+    : `Budget vs. Actual — ${month} ${year}`;
+
+  return (
+    <Card className="overflow-visible">
+      <CardHeader>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            {expanded && (
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => setExpandedId(null)}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+            )}
+            <CardTitle>{title}</CardTitle>
+          </div>
+          {!expanded && (
+            <div className="flex gap-1.5">
+              {TYPE_FILTERS.map((tf) => (
+                <Button
+                  key={tf.key}
+                  variant={activeTypes.has(tf.key) ? "default" : "outline"}
+                  size="xs"
+                  onClick={() => toggleType(tf.key)}
+                >
+                  {tf.label}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+        {!expanded && filtered.some((d) => d.isParent) && (
+          <p className="text-xs text-muted-foreground mt-1">
+            Click a category to see its breakdown
+          </p>
+        )}
+      </CardHeader>
+      <CardContent className="overflow-visible p-6 [&_*]:outline-none">
+        {chartData.length === 0 ? (
+          <p className="text-muted-foreground text-sm py-8 text-center">
+            No budget or expense data for {month}.
+          </p>
+        ) : (
+          <ResponsiveContainer width="100%" height={Math.max(350, chartData.length * 70 + 120)}>
+            <BarChart
+              data={chartData}
+              layout="vertical"
+              margin={{ top: 30, right: 30, bottom: 40, left: 30 }}
+              barGap={8}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" tickFormatter={(v) => formatAmount(v)} />
+              <YAxis
+                type="category"
+                dataKey="category"
+                width={140}
+                tick={({ x, y, payload }: { x: string | number; y: string | number; payload: { value: string } }) => {
+                  const item = chartData.find((d) => d.category === payload.value);
+                  const clickable = item?.isParent && !expanded;
+                  return (
+                    <text
+                      x={x}
+                      y={y}
+                      textAnchor="end"
+                      dominantBaseline="central"
+                      fontSize={11}
+                      fontWeight={clickable ? 600 : 400}
+                      fill={clickable ? "var(--color-primary)" : "var(--color-foreground)"}
+                      style={clickable ? { cursor: "pointer" } : undefined}
+                      onClick={() => {
+                        if (clickable && item) setExpandedId(item.id);
+                      }}
+                    >
+                      {payload.value}{clickable ? " ▸" : ""}
+                    </text>
+                  );
+                }}
+              />
+              <Tooltip content={<CustomTooltipContent />} />
+              <Legend />
+              <Bar
+                dataKey="budgeted"
+                name="Budgeted"
+                fill="#93c5fd"
+                radius={[0, 4, 4, 0]}
+                style={{ cursor: expanded ? "default" : "pointer" }}
+                onClick={(_data, index) => {
+                  if (expanded || index === undefined) return;
+                  const item = chartData[index];
+                  const top = filtered.find((d) => d.category === item?.category);
+                  if (top?.isParent) setExpandedId(top.id);
+                }}
+              />
+              <Bar
+                dataKey="actual"
+                name="Actual"
+                fill="#2563eb"
+                radius={[0, 4, 4, 0]}
+                style={{ cursor: expanded ? "default" : "pointer" }}
+                onClick={(_data, index) => {
+                  if (expanded || index === undefined) return;
+                  const item = chartData[index];
+                  const top = filtered.find((d) => d.category === item?.category);
+                  if (top?.isParent) setExpandedId(top.id);
+                }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -250,39 +406,7 @@ export default function ChartsPage() {
       </div>
 
       {/* Budget vs Actual */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Budget vs. Actual — {MONTHS[month - 1]} {year}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {budgetVsActual.length === 0 ? (
-            <p className="text-muted-foreground text-sm py-8 text-center">
-              No budget or expense data for {MONTHS[month - 1]}.
-            </p>
-          ) : (
-            <ResponsiveContainer width="100%" height={Math.max(300, budgetVsActual.length * 40)}>
-              <BarChart
-                data={budgetVsActual}
-                layout="vertical"
-                margin={{ left: 20 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" tickFormatter={(v) => formatAmount(v)} />
-                <YAxis
-                  type="category"
-                  dataKey="category"
-                  width={140}
-                  tick={{ fontSize: 11 }}
-                />
-                <Tooltip content={<CustomTooltipContent />} />
-                <Legend />
-                <Bar dataKey="budgeted" name="Budgeted" fill="#93c5fd" radius={[0, 4, 4, 0]} />
-                <Bar dataKey="actual" name="Actual" fill="#2563eb" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
+      <BudgetVsActualDrilldown data={budgetVsActual} month={MONTHS[month - 1]} year={year} />
     </div>
   );
 }

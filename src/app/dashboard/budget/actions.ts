@@ -76,12 +76,12 @@ export async function getBudgetVsActual(year: number, month: number) {
 
   const typeOrder = ["income", "fixed", "variable", "tax", "savings"];
 
-  // Build line items — skip parent categories (they'll be summed from children)
-  const lineItems: BudgetLineItem[] = [];
+  // Build leaf items
+  const leafItems: BudgetLineItem[] = [];
 
   for (const cat of categories) {
     const isParent = cat.children.length > 0;
-    if (isParent) continue; // skip parents, we'll aggregate below
+    if (isParent) continue;
 
     const override = overrideMap.get(cat.id);
     const master = masterMap.get(cat.id);
@@ -89,11 +89,9 @@ export async function getBudgetVsActual(year: number, month: number) {
       override !== undefined ? override : master !== undefined ? master / 12 : 0;
     const actual = actualMap.get(cat.id) || 0;
 
-    lineItems.push({
+    leafItems.push({
       categoryId: cat.id,
-      categoryName: cat.parent
-        ? `${cat.parent.name} > ${cat.name}`
-        : cat.name,
+      categoryName: cat.name,
       type: cat.type,
       parentId: cat.parentId,
       parentName: cat.parent?.name || null,
@@ -104,20 +102,54 @@ export async function getBudgetVsActual(year: number, month: number) {
     });
   }
 
-  // Group by type
+  // Group by type, inserting parent summary rows
   const groups: BudgetGroup[] = [];
 
   for (const type of typeOrder) {
-    const items = lineItems.filter((li) => li.type === type);
-    if (items.length === 0) continue;
+    const typeLeafs = leafItems.filter((li) => li.type === type);
+    if (typeLeafs.length === 0) continue;
 
-    const totalBudgeted = items.reduce((sum, i) => sum + i.budgeted, 0);
-    const totalActual = items.reduce((sum, i) => sum + i.actual, 0);
+    // Find parent categories for this type
+    const parentCats = categories.filter(
+      (c) => c.type === type && c.children.length > 0
+    );
+
+    // Build ordered items: parent row then its children, then top-level leafs
+    const orderedItems: BudgetLineItem[] = [];
+
+    for (const parent of parentCats) {
+      const children = typeLeafs.filter((li) => li.parentId === parent.id);
+      if (children.length === 0) continue;
+
+      const parentBudgeted = children.reduce((s, c) => s + c.budgeted, 0);
+      const parentActual = children.reduce((s, c) => s + c.actual, 0);
+
+      orderedItems.push({
+        categoryId: parent.id,
+        categoryName: parent.name,
+        type: parent.type,
+        parentId: null,
+        parentName: null,
+        budgeted: Math.round(parentBudgeted * 100) / 100,
+        actual: Math.round(parentActual * 100) / 100,
+        difference: Math.round((parentBudgeted - parentActual) * 100) / 100,
+        isParent: true,
+      });
+
+      orderedItems.push(...children);
+    }
+
+    // Add top-level leafs (no parent)
+    const topLevel = typeLeafs.filter((li) => !li.parentId);
+    orderedItems.push(...topLevel);
+
+    const totalBudgeted = typeLeafs.reduce((sum, i) => sum + i.budgeted, 0);
+    const totalActual = typeLeafs.reduce((sum, i) => sum + i.actual, 0);
 
     groups.push({
       type,
       label: typeLabels[type] || type,
-      items,
+      items: orderedItems,
       totalBudgeted: Math.round(totalBudgeted * 100) / 100,
       totalActual: Math.round(totalActual * 100) / 100,
       totalDifference: Math.round((totalBudgeted - totalActual) * 100) / 100,

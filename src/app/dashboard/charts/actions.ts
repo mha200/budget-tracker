@@ -14,9 +14,14 @@ export type CategoryBreakdown = {
 };
 
 export type BudgetVsActualBar = {
+  id: string;
   category: string;
+  type: string;
   budgeted: number;
   actual: number;
+  isParent: boolean;
+  parentId: string | null;
+  children?: BudgetVsActualBar[];
 };
 
 export async function getMonthlyTrend(year: number) {
@@ -148,7 +153,8 @@ export async function getBudgetVsActualChart(year: number, month: number) {
     expenseAgg.map((e) => [e.categoryId, e._sum.amount || 0])
   );
 
-  const result: BudgetVsActualBar[] = [];
+  // Build leaf items keyed by id
+  const leafMap = new Map<string, BudgetVsActualBar>();
 
   for (const cat of categories) {
     if (cat.children.length > 0) continue;
@@ -162,13 +168,56 @@ export async function getBudgetVsActualChart(year: number, month: number) {
 
     if (budgeted === 0 && actual === 0) continue;
 
-    const name = cat.parent ? `${cat.parent.name} > ${cat.name}` : cat.name;
-
-    result.push({
-      category: name,
+    leafMap.set(cat.id, {
+      id: cat.id,
+      category: cat.name,
+      type: cat.type,
       budgeted: Math.round(budgeted * 100) / 100,
       actual: Math.round(actual * 100) / 100,
+      isParent: false,
+      parentId: cat.parentId,
     });
+  }
+
+  // Build top-level list: parent summaries + standalone leafs
+  const result: BudgetVsActualBar[] = [];
+  const usedLeafIds = new Set<string>();
+
+  for (const cat of categories) {
+    if (cat.type === "income") continue;
+    if (cat.children.length === 0) continue; // not a parent
+
+    const children: BudgetVsActualBar[] = [];
+    for (const child of cat.children) {
+      const leaf = leafMap.get(child.id);
+      if (leaf) {
+        children.push(leaf);
+        usedLeafIds.add(child.id);
+      }
+    }
+
+    if (children.length === 0) continue;
+
+    const parentBudgeted = children.reduce((s, c) => s + c.budgeted, 0);
+    const parentActual = children.reduce((s, c) => s + c.actual, 0);
+
+    result.push({
+      id: cat.id,
+      category: cat.name,
+      type: cat.type,
+      budgeted: Math.round(parentBudgeted * 100) / 100,
+      actual: Math.round(parentActual * 100) / 100,
+      isParent: true,
+      parentId: null,
+      children,
+    });
+  }
+
+  // Add standalone leafs (no parent)
+  for (const [id, leaf] of leafMap) {
+    if (!usedLeafIds.has(id)) {
+      result.push(leaf);
+    }
   }
 
   return result;

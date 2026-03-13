@@ -104,3 +104,39 @@ export async function addCategory(
   revalidatePath("/dashboard/budget");
   return { success: true, categoryId: cat.id };
 }
+
+export async function deleteCategory(
+  categoryId: string
+): Promise<{ error?: string; success?: boolean }> {
+  const session = await auth();
+  if (!session?.user) return { error: "Not authenticated" };
+
+  // Check for linked expenses
+  const expenseCount = await prisma.expense.count({
+    where: { categoryId },
+  });
+  if (expenseCount > 0) {
+    return {
+      error: `Cannot delete: ${expenseCount} expense${expenseCount !== 1 ? "s" : ""} linked to this category. Delete or reassign them first.`,
+    };
+  }
+
+  // Check for child categories
+  const childCount = await prisma.category.count({
+    where: { parentId: categoryId, active: true },
+  });
+  if (childCount > 0) {
+    return {
+      error: "Cannot delete: this category has subcategories. Delete them first.",
+    };
+  }
+
+  // Delete related records, then the category
+  await prisma.masterBudget.deleteMany({ where: { categoryId } });
+  await prisma.budget.deleteMany({ where: { categoryId } });
+  await prisma.categorizationRule.deleteMany({ where: { categoryId } });
+  await prisma.category.delete({ where: { id: categoryId } });
+
+  revalidatePath("/dashboard/budget");
+  return { success: true };
+}

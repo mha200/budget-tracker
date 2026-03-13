@@ -3,13 +3,14 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, PlusCircle, List, Upload, Scale, Settings2, BarChart3, Repeat } from "lucide-react";
+import { LayoutDashboard, PlusCircle, List, Upload, Camera, Scale, Settings2, BarChart3, Repeat } from "lucide-react";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/dashboard/expenses/new", label: "Add Transaction", icon: PlusCircle, exact: true },
   { href: "/dashboard/expenses", label: "Transactions", icon: List, exact: true },
   { href: "/dashboard/expenses/import", label: "Import CSV", icon: Upload, exact: true },
+  { href: "/dashboard/expenses/receipt", label: "Scan Receipt", icon: Camera, exact: true },
   { href: "/dashboard/budget", label: "Budget", icon: Scale, exact: true },
   { href: "/dashboard/budget/master", label: "Set Budget", icon: Settings2, exact: true },
   { href: "/dashboard/charts", label: "Charts", icon: BarChart3, exact: true },

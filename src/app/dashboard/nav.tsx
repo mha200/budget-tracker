@@ -25,7 +25,7 @@ export function DashboardNav() {
   }
 
   return (
-    <nav className="border-b bg-muted/40">
+    <nav data-tour="nav" className="border-b bg-muted/40">
       <div className="max-w-6xl mx-auto px-4 flex gap-1 overflow-x-auto">
         {navLinks.map((link) => {
           const active = isActive(link.href, link.exact);

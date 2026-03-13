@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createExpense, getCategories } from "../actions";
+import { DescriptionAutocomplete } from "@/components/description-autocomplete";
 
 type Category = {
   id: string;
@@ -48,6 +49,8 @@ export default function NewExpensePage() {
   const [isPending, startTransition] = useTransition();
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState("");
 
   useEffect(() => {
     getCategories().then(setCategories);
@@ -73,6 +76,17 @@ export default function NewExpensePage() {
     return cat.parent ? `${cat.parent.name} > ${cat.name}` : cat.name;
   }
 
+  function handleSuggestionSelect(suggestion: {
+    description: string | null;
+    amount: number;
+    categoryId: string;
+  }) {
+    setAmount(String(suggestion.amount));
+    setSelectedCategory(suggestion.categoryId);
+    // Focus amount so user can confirm or adjust
+    amountRef.current?.focus();
+  }
+
   function handleSubmit(formData: FormData) {
     if (!selectedCategory) {
       toast.error("Please select a category");
@@ -88,8 +102,8 @@ export default function NewExpensePage() {
         toast.success("Transaction added!");
         formRef.current?.reset();
         setSelectedCategory("");
-        // Re-focus amount for rapid entry
-        amountRef.current?.focus();
+        setDescription("");
+        setAmount("");
       }
     });
   }
@@ -103,6 +117,20 @@ export default function NewExpensePage() {
         </CardHeader>
         <CardContent>
           <form ref={formRef} action={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <DescriptionAutocomplete
+                value={description}
+                onChange={setDescription}
+                onSelect={handleSuggestionSelect}
+                autoFocus
+              />
+              <input type="hidden" name="description" value={description} />
+              <p className="text-xs text-muted-foreground">
+                Start typing to see matching past transactions
+              </p>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="amount">Amount</Label>
               <div className="relative">
@@ -118,7 +146,8 @@ export default function NewExpensePage() {
                   min="0.01"
                   placeholder="0.00"
                   required
-                  autoFocus
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
                   className="pl-8 text-lg h-12"
                 />
               </div>
@@ -158,15 +187,6 @@ export default function NewExpensePage() {
                 type="date"
                 defaultValue={formatDate(new Date())}
                 required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description (optional)</Label>
-              <Input
-                id="description"
-                name="description"
-                placeholder="e.g. Whole Foods weekly groceries"
               />
             </div>
 

@@ -143,6 +143,43 @@ export async function updateExpense(
   return { success: true };
 }
 
+export async function searchPastTransactions(query: string) {
+  const session = await auth();
+  if (!session?.user) return [];
+
+  if (!query || query.length < 2) return [];
+
+  const expenses = await prisma.expense.findMany({
+    where: {
+      description: { contains: query, mode: "insensitive" },
+    },
+    include: {
+      category: { include: { parent: true } },
+    },
+    orderBy: { date: "desc" },
+  });
+
+  // Deduplicate by description+category, keeping the most recent
+  const seen = new Map<string, (typeof expenses)[0]>();
+  for (const exp of expenses) {
+    const key = `${exp.description?.toLowerCase()}::${exp.categoryId}`;
+    if (!seen.has(key)) {
+      seen.set(key, exp);
+    }
+  }
+
+  return Array.from(seen.values())
+    .slice(0, 5)
+    .map((exp) => ({
+      description: exp.description,
+      amount: exp.amount,
+      categoryId: exp.categoryId,
+      categoryLabel: exp.category.parent
+        ? `${exp.category.parent.name} > ${exp.category.name}`
+        : exp.category.name,
+    }));
+}
+
 export async function deleteExpense(
   id: string
 ): Promise<{ error?: string; success?: boolean }> {

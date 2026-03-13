@@ -32,7 +32,7 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 // Now import the actions (they'll use our mocks)
-import { createExpense, getCategories, getExpenses, deleteExpense } from "../actions";
+import { createExpense, getCategories, getExpenses, deleteExpense, searchPastTransactions } from "../actions";
 
 // Helper to build FormData from an object
 function makeFormData(data: Record<string, string>): FormData {
@@ -229,6 +229,68 @@ describe("getExpenses", () => {
     const call = mockPrisma.expense.findMany.mock.calls[0][0];
     expect(call.where.date.gte).toEqual(new Date("2026-03-01"));
     expect(call.where.date.lte).toEqual(new Date("2026-03-31T23:59:59"));
+  });
+});
+
+describe("searchPastTransactions", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+  });
+
+  it("returns empty array when not authenticated", async () => {
+    mockAuth.mockResolvedValue(null);
+    const result = await searchPastTransactions("grocery");
+    expect(result).toEqual([]);
+  });
+
+  it("returns empty array when query is too short", async () => {
+    const result = await searchPastTransactions("a");
+    expect(result).toEqual([]);
+    expect(mockPrisma.expense.findMany).not.toHaveBeenCalled();
+  });
+
+  it("returns deduplicated suggestions from past expenses", async () => {
+    mockPrisma.expense.findMany.mockResolvedValue([
+      {
+        description: "Whole Foods groceries",
+        amount: 85.43,
+        categoryId: "cat-1",
+        category: { name: "Groceries", parent: null },
+      },
+      {
+        description: "Whole Foods groceries",
+        amount: 92.1,
+        categoryId: "cat-1",
+        category: { name: "Groceries", parent: null },
+      },
+    ]);
+
+    const result = await searchPastTransactions("Whole");
+
+    // Should deduplicate: same description + category = 1 result (most recent)
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      description: "Whole Foods groceries",
+      amount: 85.43,
+      categoryId: "cat-1",
+      categoryLabel: "Groceries",
+    });
+  });
+
+  it("includes parent category in label", async () => {
+    mockPrisma.expense.findMany.mockResolvedValue([
+      {
+        description: "Homeowner's insurance",
+        amount: 150,
+        categoryId: "cat-2",
+        category: { name: "Insurance", parent: { name: "Housing" } },
+      },
+    ]);
+
+    const result = await searchPastTransactions("insurance");
+
+    expect(result[0].categoryLabel).toBe("Housing > Insurance");
   });
 });
 

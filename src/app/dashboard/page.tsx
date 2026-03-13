@@ -26,18 +26,27 @@ export default async function DashboardPage() {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-  const monthlyTotal = await prisma.expense.aggregate({
+  const monthlyIncome = await prisma.expense.aggregate({
     _sum: { amount: true },
+    _count: true,
     where: {
       date: { gte: monthStart, lte: monthEnd },
+      category: { type: "income" },
     },
   });
 
-  const monthlyCount = await prisma.expense.count({
+  const monthlySpending = await prisma.expense.aggregate({
+    _sum: { amount: true },
+    _count: true,
     where: {
       date: { gte: monthStart, lte: monthEnd },
+      category: { type: { not: "income" } },
     },
   });
+
+  const incomeTotal = monthlyIncome._sum.amount || 0;
+  const spendingTotal = monthlySpending._sum.amount || 0;
+  const netTotal = incomeTotal - spendingTotal;
 
   function formatAmount(amount: number) {
     return new Intl.NumberFormat("en-US", {
@@ -68,7 +77,22 @@ export default async function DashboardPage() {
       </div>
 
       {/* Monthly Summary */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              This Month&apos;s Income
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-green-600">
+              {formatAmount(incomeTotal)}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {monthlyIncome._count} transaction{monthlyIncome._count !== 1 ? "s" : ""}
+            </p>
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -77,59 +101,76 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
-              {formatAmount(monthlyTotal._sum.amount || 0)}
+              {formatAmount(spendingTotal)}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              {monthlyCount} expense{monthlyCount !== 1 ? "s" : ""}
+              {monthlySpending._count} transaction{monthlySpending._count !== 1 ? "s" : ""}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Quick Actions
+              Net
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-2">
-            <Button
-              variant="outline"
-              render={<Link href="/dashboard/expenses/new" />}
-              nativeButton={false}
-              className="justify-start gap-2"
-            >
-              <PlusCircle className="size-4" />
-              Add a transaction
-            </Button>
-            <Button
-              variant="outline"
-              render={<Link href="/dashboard/expenses" />}
-              nativeButton={false}
-              className="justify-start gap-2"
-            >
-              <ArrowRight className="size-4" />
-              View all transactions
-            </Button>
-            <Button
-              variant="outline"
-              render={<Link href="/dashboard/budget" />}
-              nativeButton={false}
-              className="justify-start gap-2"
-            >
-              <Scale className="size-4" />
-              Budget vs. Actual
-            </Button>
-            <Button
-              variant="outline"
-              render={<Link href="/dashboard/budget/master" />}
-              nativeButton={false}
-              className="justify-start gap-2"
-            >
-              <Settings2 className="size-4" />
-              Set up your budget
-            </Button>
+          <CardContent>
+            <p className={`text-3xl font-bold ${netTotal >= 0 ? "text-green-600" : "text-red-600"}`}>
+              {netTotal >= 0 ? "+" : ""}{formatAmount(netTotal)}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {netTotal >= 0 ? "surplus" : "deficit"}
+            </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Quick Actions
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            render={<Link href="/dashboard/expenses/new" />}
+            nativeButton={false}
+            className="gap-2"
+          >
+            <PlusCircle className="size-4" />
+            Add a transaction
+          </Button>
+          <Button
+            variant="outline"
+            render={<Link href="/dashboard/expenses" />}
+            nativeButton={false}
+            className="gap-2"
+          >
+            <ArrowRight className="size-4" />
+            View all transactions
+          </Button>
+          <Button
+            variant="outline"
+            render={<Link href="/dashboard/budget" />}
+            nativeButton={false}
+            className="gap-2"
+          >
+            <Scale className="size-4" />
+            Budget vs. Actual
+          </Button>
+          <Button
+            variant="outline"
+            render={<Link href="/dashboard/budget/master" />}
+            nativeButton={false}
+            className="gap-2"
+          >
+            <Settings2 className="size-4" />
+            Set up your budget
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Recent Transactions */}
       <Card>

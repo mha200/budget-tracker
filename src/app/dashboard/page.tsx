@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { PlusCircle, ArrowRight, Settings2, Scale } from "lucide-react";
+import { OnboardingTour } from "@/components/onboarding-tour";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -64,9 +65,11 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <OnboardingTour />
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold">Welcome, {firstName}!</h2>
         <Button
+          data-tour="add-transaction"
           render={<Link href="/dashboard/expenses/new" />}
           nativeButton={false}
           className="gap-1.5"
@@ -77,7 +80,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Monthly Summary */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div data-tour="summary-cards" className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -126,7 +129,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card data-tour="quick-actions">
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Quick Actions

@@ -82,6 +82,7 @@ model Category {
   masterBudgets        MasterBudget[]
   budgets              Budget[]
   expenses             Expense[]
+  recurringExpenses    RecurringExpense[]
   categorizationRules  CategorizationRule[]
 
   createdAt DateTime @default(now())
@@ -130,6 +131,22 @@ model Expense {
 
   category  Category           @relation(fields: [categoryId], references: [id])
   statement UploadedStatement? @relation(fields: [statementId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RecurringExpense {
+  id          String   @id @default(cuid())
+  categoryId  String
+  amount      Float
+  description String?
+  frequency   String   // "monthly", "weekly", "yearly"
+  dayOfMonth  Int?     // 1-31 for monthly, null for others
+  active      Boolean  @default(true)
+  lastApplied DateTime?
+
+  category Category @relation(fields: [categoryId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

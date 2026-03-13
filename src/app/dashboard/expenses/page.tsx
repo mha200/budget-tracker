@@ -16,8 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Trash2 } from "lucide-react";
-import { getExpenses, getCategories, deleteExpense } from "./actions";
+import { PlusCircle, Trash2, Pencil, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { getExpenses, getCategories, deleteExpense, updateExpense } from "./actions";
 
 type Category = {
   id: string;
@@ -37,12 +37,26 @@ type Expense = {
 };
 
 const ALL_CATEGORIES = "__all__";
+const PAGE_SIZE = 15;
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isPending, startTransition] = useTransition();
+
+  // Delete confirmation
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editAmount, setEditAmount] = useState("");
+  const [editCategory, setEditCategory] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+
+  // Pagination
+  const [page, setPage] = useState(1);
 
   // Filters
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
@@ -67,11 +81,50 @@ export default function ExpensesPage() {
 
   useEffect(() => {
     loadExpenses();
+    setPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryFilter, dateFrom, dateTo]);
 
+  // Pagination calculations
+  const totalPages = Math.max(1, Math.ceil(expenses.length / PAGE_SIZE));
+  const pagedExpenses = expenses.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+  );
+
+  function startEdit(expense: Expense) {
+    setEditingId(expense.id);
+    setEditAmount(String(expense.amount));
+    setEditCategory(expense.category.id);
+    setEditDate(formatDateValue(expense.date));
+    setEditDescription(expense.description || "");
+    setConfirmDeleteId(null);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+  }
+
+  function handleSave(id: string) {
+    const formData = new FormData();
+    formData.set("amount", editAmount);
+    formData.set("categoryId", editCategory);
+    formData.set("date", editDate);
+    formData.set("description", editDescription);
+
+    startTransition(async () => {
+      const result = await updateExpense(id, formData);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Expense updated");
+        setEditingId(null);
+        loadExpenses();
+      }
+    });
+  }
+
   function handleDelete(id: string) {
-    if (!confirm("Delete this expense?")) return;
     setDeletingId(id);
     startTransition(async () => {
       const result = await deleteExpense(id);
@@ -82,6 +135,7 @@ export default function ExpensesPage() {
         loadExpenses();
       }
       setDeletingId(null);
+      setConfirmDeleteId(null);
     });
   }
 
@@ -119,6 +173,14 @@ export default function ExpensesPage() {
       day: "numeric",
       year: "numeric",
     });
+  }
+
+  function formatDateValue(date: Date | string) {
+    const d = new Date(date);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
   }
 
   function categoryLabel(cat: Category) {
@@ -235,37 +297,189 @@ export default function ExpensesPage() {
               .
             </p>
           ) : (
-            <div className="divide-y">
-              {expenses.map((expense) => (
-                <div
-                  key={expense.id}
-                  className="flex items-center justify-between py-3 gap-4"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">
-                        {formatAmount(expense.amount)}
-                      </span>
-                      <span className="text-xs text-muted-foreground rounded bg-muted px-1.5 py-0.5">
-                        {categoryLabel(expense.category)}
-                      </span>
+            <>
+              <div className="divide-y">
+                {pagedExpenses.map((expense) =>
+                  editingId === expense.id ? (
+                    <div key={expense.id} className="py-3 space-y-3 bg-muted/30 -mx-4 px-4 rounded">
+                      <div className="flex flex-wrap gap-3 items-end">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Amount</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0.01"
+                            value={editAmount}
+                            onChange={(e) => setEditAmount(e.target.value)}
+                            className="w-28 h-8"
+                            autoFocus
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Category</Label>
+                          <Select
+                            value={editCategory}
+                            onValueChange={(val) => setEditCategory(val ?? editCategory)}
+                          >
+                            <SelectTrigger className="w-48 h-8">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(grouped).map(([group, cats]) => (
+                                <SelectGroup key={group}>
+                                  <SelectLabel>{group}</SelectLabel>
+                                  {cats.map((cat) => (
+                                    <SelectItem key={cat.id} value={cat.id}>
+                                      {categoryLabel(cat)}
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Date</Label>
+                          <Input
+                            type="date"
+                            value={editDate}
+                            onChange={(e) => setEditDate(e.target.value)}
+                            className="w-36 h-8"
+                          />
+                        </div>
+                        <div className="space-y-1 flex-1 min-w-[120px]">
+                          <Label className="text-xs">Description</Label>
+                          <Input
+                            value={editDescription}
+                            onChange={(e) => setEditDescription(e.target.value)}
+                            placeholder="Optional"
+                            className="h-8"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleSave(expense.id);
+                              if (e.key === "Escape") cancelEdit();
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="xs"
+                          onClick={() => handleSave(expense.id)}
+                          disabled={isPending}
+                          className="gap-1"
+                        >
+                          <Check className="size-3" />
+                          Save
+                        </Button>
+                        <Button size="xs" variant="ghost" onClick={cancelEdit}>
+                          Cancel
+                        </Button>
+                      </div>
                     </div>
-                    <div className="text-sm text-muted-foreground mt-0.5">
-                      {formatDate(expense.date)}
-                      {expense.description && ` — ${expense.description}`}
+                  ) : (
+                    <div
+                      key={expense.id}
+                      className="flex items-center justify-between py-3 gap-4"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">
+                            {formatAmount(expense.amount)}
+                          </span>
+                          <span className="text-xs text-muted-foreground rounded bg-muted px-1.5 py-0.5">
+                            {categoryLabel(expense.category)}
+                          </span>
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-0.5">
+                          {formatDate(expense.date)}
+                          {expense.description && ` — ${expense.description}`}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {confirmDeleteId === expense.id ? (
+                          <>
+                            <span className="text-xs text-destructive mr-1">Delete?</span>
+                            <Button
+                              variant="destructive"
+                              size="icon-xs"
+                              onClick={() => handleDelete(expense.id)}
+                              disabled={deletingId === expense.id}
+                            >
+                              <Check className="size-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              onClick={() => setConfirmDeleteId(null)}
+                            >
+                              <X className="size-3" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              onClick={() => startEdit(expense)}
+                            >
+                              <Pencil className="size-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              className="text-muted-foreground hover:text-destructive"
+                              onClick={() => {
+                                setConfirmDeleteId(expense.id);
+                                setEditingId(null);
+                              }}
+                            >
+                              <Trash2 className="size-3" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
+                  )
+                )}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between pt-4 border-t mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, expenses.length)} of {expenses.length}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="icon-xs"
+                      disabled={page === 1}
+                      onClick={() => setPage(page - 1)}
+                    >
+                      <ChevronLeft className="size-3" />
+                    </Button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                      <Button
+                        key={p}
+                        variant={p === page ? "default" : "outline"}
+                        size="xs"
+                        onClick={() => setPage(p)}
+                      >
+                        {p}
+                      </Button>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="icon-xs"
+                      disabled={page === totalPages}
+                      onClick={() => setPage(page + 1)}
+                    >
+                      <ChevronRight className="size-3" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="destructive"
-                    size="icon-xs"
-                    onClick={() => handleDelete(expense.id)}
-                    disabled={deletingId === expense.id}
-                  >
-                    <Trash2 className="size-3" />
-                  </Button>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

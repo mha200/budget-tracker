@@ -110,6 +110,39 @@ export async function getExpenses(filters?: {
   return expenses;
 }
 
+export async function updateExpense(
+  id: string,
+  formData: FormData
+): Promise<{ error?: string; success?: boolean }> {
+  const session = await auth();
+  if (!session?.user) return { error: "Not authenticated" };
+
+  const parsed = expenseSchema.safeParse({
+    amount: formData.get("amount"),
+    categoryId: formData.get("categoryId"),
+    date: formData.get("date"),
+    description: formData.get("description"),
+  });
+
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  const { amount, categoryId, date, description } = parsed.data;
+
+  const category = await prisma.category.findUnique({
+    where: { id: categoryId },
+  });
+  if (!category) return { error: "Invalid category" };
+
+  await prisma.expense.update({
+    where: { id },
+    data: { amount, categoryId, date, description: description || null },
+  });
+
+  revalidatePath("/dashboard/expenses");
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
 export async function deleteExpense(
   id: string
 ): Promise<{ error?: string; success?: boolean }> {

@@ -172,7 +172,7 @@ export default async function DashboardPage() {
                     <span className="font-medium">
                       {formatAmount(expense.amount)}
                     </span>
-                    <span className="text-xs text-muted-foreground ml-2 rounded bg-muted px-1.5 py-0.5">
+                    <span className="text-sm text-muted-foreground ml-2 rounded bg-muted px-1.5 py-0.5">
                       {expense.category.parent
                         ? `${expense.category.parent.name} > ${expense.category.name}`
                         : expense.category.name}

@@ -59,7 +59,7 @@
   --secondary: oklch(0.96 0.01 195);
   --secondary-foreground: oklch(0.25 0.05 195);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.50 0 0);
+  --muted-foreground: oklch(0.42 0 0);
   --accent: oklch(0.96 0.01 195);
   --accent-foreground: oklch(0.25 0.05 195);
   --destructive: oklch(0.577 0.245 27.325);
@@ -125,6 +125,7 @@
   }
   html {
     @apply font-sans;
+    font-size: 18px;
   }
   [data-slot="card"] {
     box-shadow: 0 1px 3px oklch(0 0 0 / 6%), 0 1px 2px oklch(0 0 0 / 4%);

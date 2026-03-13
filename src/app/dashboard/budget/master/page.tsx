@@ -122,10 +122,10 @@ function BudgetRow({
           onClick={handleSave}
           disabled={isPending}
         >
-          <Check className="size-3" />
+          <Check className="size-4" />
         </Button>
         <Button variant="ghost" size="icon-xs" onClick={handleCancel}>
-          <X className="size-3" />
+          <X className="size-4" />
         </Button>
       </div>
     );
@@ -135,7 +135,7 @@ function BudgetRow({
     <tr className={`border-b last:border-0 ${row.isParent ? "bg-primary/5" : ""}`}>
       <td className={`py-2.5 ${indent ? "pl-8" : ""}`}>
         {row.isParent ? (
-          <span className="font-semibold text-foreground text-[0.8125rem] uppercase tracking-wide">{row.categoryName}</span>
+          <span className="font-semibold text-foreground text-sm uppercase tracking-wide">{row.categoryName}</span>
         ) : (
           row.categoryName
         )}
@@ -175,7 +175,7 @@ function BudgetRow({
           className="text-muted-foreground hover:text-destructive"
           onClick={() => onDelete(row.categoryId, row.categoryName)}
         >
-          <Trash2 className="size-3" />
+          <Trash2 className="size-4" />
         </Button>
       </td>
     </tr>
@@ -273,7 +273,7 @@ export default function MasterBudgetPage() {
         <h2 className="text-3xl font-bold">Master Budget</h2>
         <div className="flex gap-3 items-end">
           <div className="space-y-1">
-            <Label className="text-xs">Year</Label>
+            <Label className="text-sm">Year</Label>
             <Select
               value={String(year)}
               onValueChange={(val) => setYear(Number(val))}
@@ -311,7 +311,7 @@ export default function MasterBudgetPage() {
           <CardContent>
             <div className="flex flex-wrap gap-3 items-end">
               <div className="space-y-1">
-                <Label className="text-xs">Name</Label>
+                <Label className="text-sm">Name</Label>
                 <Input
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
@@ -321,7 +321,7 @@ export default function MasterBudgetPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Type</Label>
+                <Label className="text-sm">Type</Label>
                 <Select value={newType} onValueChange={(val) => setNewType(val ?? "variable")}>
                   <SelectTrigger className="w-40">
                     <SelectValue />
@@ -336,7 +336,7 @@ export default function MasterBudgetPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Parent (optional)</Label>
+                <Label className="text-sm">Parent (optional)</Label>
                 <Select
                   value={newParentId || NO_PARENT}
                   onValueChange={(val) => setNewParentId(val ?? "")}

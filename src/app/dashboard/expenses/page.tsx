@@ -241,7 +241,7 @@ export default function ExpensesPage() {
           <CardContent>
             <div className="flex flex-wrap gap-3 items-end">
               <div className="space-y-1">
-                <Label className="text-xs">Amount</Label>
+                <Label className="text-sm">Amount</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -254,7 +254,7 @@ export default function ExpensesPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Category</Label>
+                <Label className="text-sm">Category</Label>
                 <Select
                   value={addCategory}
                   onValueChange={(val) => setAddCategory(val ?? "")}
@@ -277,7 +277,7 @@ export default function ExpensesPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Date</Label>
+                <Label className="text-sm">Date</Label>
                 <Input
                   type="date"
                   value={addDate}
@@ -286,7 +286,7 @@ export default function ExpensesPage() {
                 />
               </div>
               <div className="space-y-1 flex-1 min-w-[120px]">
-                <Label className="text-xs">Description</Label>
+                <Label className="text-sm">Description</Label>
                 <Input
                   value={addDescription}
                   onChange={(e) => setAddDescription(e.target.value)}
@@ -319,7 +319,7 @@ export default function ExpensesPage() {
         <CardContent className="pt-4">
           <div className="flex flex-wrap gap-4 items-end">
             <div className="space-y-1">
-              <Label className="text-xs">Category</Label>
+              <Label className="text-sm">Category</Label>
               <Select
                 value={categoryFilter}
                 onValueChange={(val) => setCategoryFilter(val ?? ALL_CATEGORIES)}
@@ -345,7 +345,7 @@ export default function ExpensesPage() {
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">From</Label>
+              <Label className="text-sm">From</Label>
               <Input
                 type="date"
                 value={dateFrom}
@@ -354,7 +354,7 @@ export default function ExpensesPage() {
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">To</Label>
+              <Label className="text-sm">To</Label>
               <Input
                 type="date"
                 value={dateTo}
@@ -408,7 +408,7 @@ export default function ExpensesPage() {
                     <div key={expense.id} className="py-3 space-y-3 bg-muted/30 -mx-4 px-4 rounded">
                       <div className="flex flex-wrap gap-3 items-end">
                         <div className="space-y-1">
-                          <Label className="text-xs">Amount</Label>
+                          <Label className="text-sm">Amount</Label>
                           <Input
                             type="number"
                             step="0.01"
@@ -420,7 +420,7 @@ export default function ExpensesPage() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs">Category</Label>
+                          <Label className="text-sm">Category</Label>
                           <Select
                             value={editCategory}
                             onValueChange={(val) => setEditCategory(val ?? editCategory)}
@@ -443,7 +443,7 @@ export default function ExpensesPage() {
                           </Select>
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs">Date</Label>
+                          <Label className="text-sm">Date</Label>
                           <Input
                             type="date"
                             value={editDate}
@@ -452,7 +452,7 @@ export default function ExpensesPage() {
                           />
                         </div>
                         <div className="space-y-1 flex-1 min-w-[120px]">
-                          <Label className="text-xs">Description</Label>
+                          <Label className="text-sm">Description</Label>
                           <Input
                             value={editDescription}
                             onChange={(e) => setEditDescription(e.target.value)}
@@ -472,7 +472,7 @@ export default function ExpensesPage() {
                           disabled={isPending}
                           className="gap-1"
                         >
-                          <Check className="size-3" />
+                          <Check className="size-4" />
                           Save
                         </Button>
                         <Button size="xs" variant="ghost" onClick={cancelEdit}>
@@ -490,7 +490,7 @@ export default function ExpensesPage() {
                           <span className="font-medium">
                             {formatAmount(expense.amount)}
                           </span>
-                          <span className="text-xs text-muted-foreground rounded bg-muted px-1.5 py-0.5">
+                          <span className="text-sm text-muted-foreground rounded bg-muted px-1.5 py-0.5">
                             {categoryLabel(expense.category)}
                           </span>
                         </div>
@@ -502,21 +502,21 @@ export default function ExpensesPage() {
                       <div className="flex items-center gap-1">
                         {confirmDeleteId === expense.id ? (
                           <>
-                            <span className="text-xs text-destructive mr-1">Delete?</span>
+                            <span className="text-sm text-destructive mr-1">Delete?</span>
                             <Button
                               variant="destructive"
                               size="icon-xs"
                               onClick={() => handleDelete(expense.id)}
                               disabled={deletingId === expense.id}
                             >
-                              <Check className="size-3" />
+                              <Check className="size-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon-xs"
                               onClick={() => setConfirmDeleteId(null)}
                             >
-                              <X className="size-3" />
+                              <X className="size-4" />
                             </Button>
                           </>
                         ) : (
@@ -526,7 +526,7 @@ export default function ExpensesPage() {
                               size="icon-xs"
                               onClick={() => startEdit(expense)}
                             >
-                              <Pencil className="size-3" />
+                              <Pencil className="size-4" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -537,7 +537,7 @@ export default function ExpensesPage() {
                                 setEditingId(null);
                               }}
                             >
-                              <Trash2 className="size-3" />
+                              <Trash2 className="size-4" />
                             </Button>
                           </>
                         )}
@@ -560,7 +560,7 @@ export default function ExpensesPage() {
                       disabled={page === 1}
                       onClick={() => setPage(page - 1)}
                     >
-                      <ChevronLeft className="size-3" />
+                      <ChevronLeft className="size-4" />
                     </Button>
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                       <Button
@@ -578,7 +578,7 @@ export default function ExpensesPage() {
                       disabled={page === totalPages}
                       onClick={() => setPage(page + 1)}
                     >
-                      <ChevronRight className="size-3" />
+                      <ChevronRight className="size-4" />
                     </Button>
                   </div>
                 </div>

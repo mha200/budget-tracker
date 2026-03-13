@@ -193,7 +193,7 @@ export default function RecurringExpensesPage() {
           <CardContent>
             <div className="flex flex-wrap gap-3 items-end">
               <div className="space-y-1">
-                <Label className="text-xs">Amount</Label>
+                <Label className="text-sm">Amount</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -206,7 +206,7 @@ export default function RecurringExpensesPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Category</Label>
+                <Label className="text-sm">Category</Label>
                 <Select
                   value={categoryId}
                   onValueChange={(val) => setCategoryId(val ?? "")}
@@ -229,7 +229,7 @@ export default function RecurringExpensesPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Frequency</Label>
+                <Label className="text-sm">Frequency</Label>
                 <Select
                   value={frequency}
                   onValueChange={(val) => setFrequency(val ?? "monthly")}
@@ -246,7 +246,7 @@ export default function RecurringExpensesPage() {
               </div>
               {frequency === "monthly" && (
                 <div className="space-y-1">
-                  <Label className="text-xs">Day of Month</Label>
+                  <Label className="text-sm">Day of Month</Label>
                   <Input
                     type="number"
                     min="1"
@@ -258,7 +258,7 @@ export default function RecurringExpensesPage() {
                 </div>
               )}
               <div className="space-y-1 flex-1 min-w-[120px]">
-                <Label className="text-xs">Description</Label>
+                <Label className="text-sm">Description</Label>
                 <Input
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -310,10 +310,10 @@ export default function RecurringExpensesPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{formatAmount(rec.amount)}</span>
-                      <span className="text-xs text-muted-foreground rounded bg-muted px-1.5 py-0.5">
+                      <span className="text-sm text-muted-foreground rounded bg-muted px-1.5 py-0.5">
                         {categoryLabel(rec.category)}
                       </span>
-                      <span className="text-xs text-muted-foreground rounded bg-primary/10 text-primary px-1.5 py-0.5">
+                      <span className="text-sm text-muted-foreground rounded bg-primary/10 text-primary px-1.5 py-0.5">
                         {rec.frequency}
                         {rec.frequency === "monthly" && rec.dayOfMonth ? ` (day ${rec.dayOfMonth})` : ""}
                       </span>
@@ -322,7 +322,7 @@ export default function RecurringExpensesPage() {
                       <p className="text-sm text-muted-foreground mt-0.5">{rec.description}</p>
                     )}
                     {rec.lastApplied && (
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="text-sm text-muted-foreground mt-0.5">
                         Last applied: {new Date(rec.lastApplied).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </p>
                     )}
@@ -330,20 +330,20 @@ export default function RecurringExpensesPage() {
                   <div className="flex items-center gap-1">
                     {confirmDeleteId === rec.id ? (
                       <>
-                        <span className="text-xs text-destructive mr-1">Delete?</span>
+                        <span className="text-sm text-destructive mr-1">Delete?</span>
                         <Button
                           variant="destructive"
                           size="icon-xs"
                           onClick={() => handleDelete(rec.id)}
                         >
-                          <Check className="size-3" />
+                          <Check className="size-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon-xs"
                           onClick={() => setConfirmDeleteId(null)}
                         >
-                          <X className="size-3" />
+                          <X className="size-4" />
                         </Button>
                       </>
                     ) : (
@@ -353,7 +353,7 @@ export default function RecurringExpensesPage() {
                         className="text-muted-foreground hover:text-destructive"
                         onClick={() => setConfirmDeleteId(rec.id)}
                       >
-                        <Trash2 className="size-3" />
+                        <Trash2 className="size-4" />
                       </Button>
                     )}
                   </div>

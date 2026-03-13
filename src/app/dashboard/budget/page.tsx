@@ -147,7 +147,7 @@ export default function BudgetPage() {
             Edit Budget
           </Button>
           <div className="space-y-1">
-            <Label className="text-xs">Month</Label>
+            <Label className="text-sm">Month</Label>
             <Select
               value={String(month)}
               onValueChange={(val) => setMonth(Number(val))}
@@ -165,7 +165,7 @@ export default function BudgetPage() {
             </Select>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">Year</Label>
+            <Label className="text-sm">Year</Label>
             <Select
               value={String(year)}
               onValueChange={(val) => setYear(Number(val))}
@@ -195,7 +195,7 @@ export default function BudgetPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{formatAmount(grandBudgeted)}</p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {MONTHS[month - 1]} expenses
             </p>
           </CardContent>
@@ -208,7 +208,7 @@ export default function BudgetPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{formatAmount(grandActual)}</p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {grandBudgeted > 0
                 ? `${Math.round((grandActual / grandBudgeted) * 100)}% of budget`
                 : "No budget set"}
@@ -225,7 +225,7 @@ export default function BudgetPage() {
             <p className={`text-2xl font-bold ${grandDifference >= 0 ? "text-green-600" : "text-red-600"}`}>
               {formatAmount(grandDifference)}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {grandDifference >= 0 ? "under budget" : "over budget"}
             </p>
           </CardContent>
@@ -270,7 +270,7 @@ export default function BudgetPage() {
                     >
                       <td className={`py-2.5 ${item.parentId ? "pl-8" : ""}`}>
                         {item.isParent ? (
-                          <span className="font-semibold text-foreground text-[0.8125rem] uppercase tracking-wide">
+                          <span className="font-semibold text-foreground text-sm uppercase tracking-wide">
                             {item.categoryName}
                           </span>
                         ) : (

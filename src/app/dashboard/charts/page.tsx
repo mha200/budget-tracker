@@ -148,7 +148,7 @@ function BudgetVsActualDrilldown({
           )}
         </div>
         {!expanded && filtered.some((d) => d.isParent) && (
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Click a category to see its breakdown
           </p>
         )}
@@ -264,7 +264,7 @@ export default function ChartsPage() {
         <h2 className="text-3xl font-bold">Charts</h2>
         <div className="flex gap-3 items-end">
           <div className="space-y-1">
-            <Label className="text-xs">Month</Label>
+            <Label className="text-sm">Month</Label>
             <Select
               value={String(month)}
               onValueChange={(val) => setMonth(Number(val ?? month))}
@@ -282,7 +282,7 @@ export default function ChartsPage() {
             </Select>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">Year</Label>
+            <Label className="text-sm">Year</Label>
             <Select
               value={String(year)}
               onValueChange={(val) => setYear(Number(val ?? year))}

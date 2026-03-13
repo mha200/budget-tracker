@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -11,9 +12,11 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Settings2 } from "lucide-react";
 import { getBudgetVsActual, type BudgetGroup } from "./actions";
+import { createExpense } from "../expenses/actions";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -69,12 +72,55 @@ export default function BudgetPage() {
   const [groups, setGroups] = useState<BudgetGroup[]>([]);
   const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
+  // Inline actual editing
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editActualValue, setEditActualValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function loadData() {
     startTransition(async () => {
       const data = await getBudgetVsActual(year, month);
       setGroups(data);
     });
+  }
+
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year, month]);
+
+  function startEditActual(categoryId: string, currentActual: number) {
+    setEditingCategoryId(categoryId);
+    setEditActualValue(currentActual > 0 ? String(currentActual) : "");
+    setTimeout(() => inputRef.current?.focus(), 0);
+  }
+
+  function handleActualSubmit() {
+    if (!editingCategoryId) return;
+    const val = parseFloat(editActualValue);
+    if (!val || val <= 0) {
+      setEditingCategoryId(null);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.set("amount", String(val));
+    formData.set("categoryId", editingCategoryId);
+    formData.set("date", `${year}-${String(month).padStart(2, "0")}-15`);
+    formData.set("description", "");
+
+    setEditingCategoryId(null);
+
+    startTransition(async () => {
+      const result = await createExpense(formData);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Actual entered");
+        loadData();
+      }
+    });
+  }
 
   // Grand totals (expenses only — exclude income)
   const expenseGroups = groups.filter((g) => g.type !== "income");
@@ -235,7 +281,33 @@ export default function BudgetPage() {
                         {formatAmount(item.budgeted)}
                       </td>
                       <td className={`py-2.5 text-right ${item.isParent ? "font-semibold" : ""}`}>
-                        {formatAmount(item.actual)}
+                        {!item.isParent && editingCategoryId === item.categoryId ? (
+                          <Input
+                            ref={inputRef}
+                            type="number"
+                            step="0.01"
+                            min="0.01"
+                            value={editActualValue}
+                            onChange={(e) => setEditActualValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleActualSubmit();
+                              if (e.key === "Escape") setEditingCategoryId(null);
+                            }}
+                            onBlur={handleActualSubmit}
+                            className="w-24 h-7 text-right text-sm ml-auto"
+                          />
+                        ) : !item.isParent ? (
+                          <button
+                            type="button"
+                            onClick={() => startEditActual(item.categoryId, item.actual)}
+                            className="cursor-pointer hover:bg-muted px-1.5 py-0.5 rounded transition-colors"
+                            title="Click to add actual"
+                          >
+                            {formatAmount(item.actual)}
+                          </button>
+                        ) : (
+                          formatAmount(item.actual)
+                        )}
                       </td>
                       <td className="py-2.5 text-right">
                         <DifferenceCell value={item.difference} type={item.type} />

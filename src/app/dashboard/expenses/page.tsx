@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,8 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Trash2, Pencil, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { getExpenses, getCategories, deleteExpense, updateExpense } from "./actions";
+import { Plus, Trash2, Pencil, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { getExpenses, getCategories, deleteExpense, updateExpense, createExpense } from "./actions";
 
 type Category = {
   id: string;
@@ -39,6 +38,14 @@ type Expense = {
 const ALL_CATEGORIES = "__all__";
 const PAGE_SIZE = 15;
 
+function formatDateValue(date: Date | string) {
+  const d = new Date(date);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -54,6 +61,13 @@ export default function ExpensesPage() {
   const [editCategory, setEditCategory] = useState("");
   const [editDate, setEditDate] = useState("");
   const [editDescription, setEditDescription] = useState("");
+
+  // Inline add
+  const [showAdd, setShowAdd] = useState(false);
+  const [addAmount, setAddAmount] = useState("");
+  const [addCategory, setAddCategory] = useState("");
+  const [addDate, setAddDate] = useState(formatDateValue(new Date()));
+  const [addDescription, setAddDescription] = useState("");
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -117,7 +131,7 @@ export default function ExpensesPage() {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Expense updated");
+        toast.success("Transaction updated");
         setEditingId(null);
         loadExpenses();
       }
@@ -131,11 +145,34 @@ export default function ExpensesPage() {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Expense deleted");
+        toast.success("Transaction deleted");
         loadExpenses();
       }
       setDeletingId(null);
       setConfirmDeleteId(null);
+    });
+  }
+
+  function handleInlineAdd() {
+    const formData = new FormData();
+    formData.set("amount", addAmount);
+    formData.set("categoryId", addCategory);
+    formData.set("date", addDate);
+    formData.set("description", addDescription);
+
+    startTransition(async () => {
+      const result = await createExpense(formData);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Transaction added!");
+        setAddAmount("");
+        setAddCategory("");
+        setAddDate(formatDateValue(new Date()));
+        setAddDescription("");
+        setShowAdd(false);
+        loadExpenses();
+      }
     });
   }
 
@@ -175,14 +212,6 @@ export default function ExpensesPage() {
     });
   }
 
-  function formatDateValue(date: Date | string) {
-    const d = new Date(date);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  }
-
   function categoryLabel(cat: Category) {
     return cat.parent ? `${cat.parent.name} > ${cat.name}` : cat.name;
   }
@@ -192,16 +221,98 @@ export default function ExpensesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold">Expenses</h2>
+        <h2 className="text-3xl font-bold">Transactions</h2>
         <Button
-          render={<Link href="/dashboard/expenses/new" />}
-          nativeButton={false}
+          size="sm"
           className="gap-1.5"
+          onClick={() => setShowAdd(!showAdd)}
         >
-          <PlusCircle className="size-4" />
-          Add Expense
+          <Plus className="size-4" />
+          Add Transaction
         </Button>
       </div>
+
+      {/* Inline Add Form */}
+      {showAdd && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Quick Add</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3 items-end">
+              <div className="space-y-1">
+                <Label className="text-xs">Amount</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={addAmount}
+                  onChange={(e) => setAddAmount(e.target.value)}
+                  placeholder="0.00"
+                  className="w-28"
+                  autoFocus
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Category</Label>
+                <Select
+                  value={addCategory}
+                  onValueChange={(val) => setAddCategory(val ?? "")}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Select..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(grouped).map(([group, cats]) => (
+                      <SelectGroup key={group}>
+                        <SelectLabel>{group}</SelectLabel>
+                        {cats.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {categoryLabel(cat)}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Date</Label>
+                <Input
+                  type="date"
+                  value={addDate}
+                  onChange={(e) => setAddDate(e.target.value)}
+                  className="w-36"
+                />
+              </div>
+              <div className="space-y-1 flex-1 min-w-[120px]">
+                <Label className="text-xs">Description</Label>
+                <Input
+                  value={addDescription}
+                  onChange={(e) => setAddDescription(e.target.value)}
+                  placeholder="e.g. Paycheck, groceries..."
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleInlineAdd();
+                    if (e.key === "Escape") setShowAdd(false);
+                  }}
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-3">
+              <Button
+                size="sm"
+                onClick={handleInlineAdd}
+                disabled={!addAmount || !addCategory || isPending}
+              >
+                Add
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setShowAdd(false)}>
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters */}
       <Card>
@@ -273,7 +384,7 @@ export default function ExpensesPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>
-              {expenses.length} expense{expenses.length !== 1 ? "s" : ""}
+              {expenses.length} transaction{expenses.length !== 1 ? "s" : ""}
             </CardTitle>
             {expenses.length > 0 && (
               <span className="text-sm font-medium">
@@ -287,14 +398,7 @@ export default function ExpensesPage() {
             <p className="text-muted-foreground text-sm py-4">Loading...</p>
           ) : expenses.length === 0 ? (
             <p className="text-muted-foreground text-sm py-4">
-              No expenses found. Start by{" "}
-              <Link
-                href="/dashboard/expenses/new"
-                className="text-primary underline"
-              >
-                adding one
-              </Link>
-              .
+              No transactions found. Click &quot;Add Transaction&quot; above to get started.
             </p>
           ) : (
             <>

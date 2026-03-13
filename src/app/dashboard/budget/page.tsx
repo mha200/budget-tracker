@@ -253,10 +253,19 @@ export default function BudgetPage() {
       ))}
 
       {/* Income summary if present */}
-      {incomeGroup && (
-        <p className="text-sm text-muted-foreground text-center">
-          {MONTHS[month - 1]} income: {formatAmount(incomeGroup.totalActual)} of {formatAmount(incomeGroup.totalBudgeted)} budgeted
-        </p>
+      {incomeGroup && incomeGroup.totalActual > 0 && (
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">
+                {MONTHS[month - 1]} income: <span className="font-medium text-foreground">{formatAmount(incomeGroup.totalActual)}</span> of {formatAmount(incomeGroup.totalBudgeted)} budgeted
+              </span>
+              <span className={`font-medium ${incomeGroup.totalDifference <= 0 ? "text-green-600" : "text-red-600"}`}>
+                {incomeGroup.totalDifference <= 0 ? "+" : ""}{formatAmount(Math.abs(incomeGroup.totalDifference))} {incomeGroup.totalDifference <= 0 ? "over target" : "remaining"}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

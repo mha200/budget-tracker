@@ -7,8 +7,8 @@ import { LayoutDashboard, PlusCircle, List, Scale, Settings2, BarChart3, Repeat 
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/dashboard/expenses/new", label: "Add Expense", icon: PlusCircle, exact: true },
-  { href: "/dashboard/expenses", label: "Expenses", icon: List, exact: true },
+  { href: "/dashboard/expenses/new", label: "Add Transaction", icon: PlusCircle, exact: true },
+  { href: "/dashboard/expenses", label: "Transactions", icon: List, exact: true },
   { href: "/dashboard/budget", label: "Budget", icon: Scale, exact: true },
   { href: "/dashboard/budget/master", label: "Set Budget", icon: Settings2, exact: true },
   { href: "/dashboard/charts", label: "Charts", icon: BarChart3, exact: true },

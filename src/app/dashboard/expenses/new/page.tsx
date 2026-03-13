@@ -35,6 +35,7 @@ function formatDate(date: Date): string {
 }
 
 const typeLabels: Record<string, string> = {
+  income: "Income",
   fixed: "Fixed Expenses",
   variable: "Variable Expenses",
   tax: "Taxes",
@@ -58,9 +59,6 @@ export default function NewExpensePage() {
       // Skip parent categories (ones that have children)
       const hasChildren = categories.some((c) => c.parentId === cat.id);
       if (hasChildren) return acc;
-      // Skip income
-      if (cat.type === "income") return acc;
-
       const group = typeLabels[cat.type] || cat.type;
       if (!acc[group]) acc[group] = [];
       acc[group].push(cat);
@@ -81,7 +79,7 @@ export default function NewExpensePage() {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Expense added!");
+        toast.success("Transaction added!");
         formRef.current?.reset();
         setSelectedCategory("");
         // Re-focus amount for rapid entry
@@ -92,7 +90,7 @@ export default function NewExpensePage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold">Add Expense</h2>
+      <h2 className="text-3xl font-bold">Add Transaction</h2>
       <Card>
         <CardHeader>
           <CardTitle>Quick Entry</CardTitle>
@@ -168,7 +166,7 @@ export default function NewExpensePage() {
 
             <div className="flex gap-3 pt-2">
               <Button type="submit" disabled={isPending}>
-                {isPending ? "Saving..." : "Add Expense"}
+                {isPending ? "Saving..." : "Add Transaction"}
               </Button>
               <Button
                 type="button"
@@ -176,7 +174,7 @@ export default function NewExpensePage() {
                 nativeButton={false}
                 render={<Link href="/dashboard/expenses" />}
               >
-                View Expenses
+                View Transactions
               </Button>
             </div>
           </form>

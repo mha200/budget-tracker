@@ -219,7 +219,7 @@ export default function RecurringExpensesPage() {
                       <SelectGroup key={group}>
                         <SelectLabel>{group}</SelectLabel>
                         {cats.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
+                          <SelectItem key={cat.id} value={cat.id} label={categoryLabel(cat)}>
                             {categoryLabel(cat)}
                           </SelectItem>
                         ))}

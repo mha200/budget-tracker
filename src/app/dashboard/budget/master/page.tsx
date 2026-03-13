@@ -345,9 +345,9 @@ export default function MasterBudgetPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={NO_PARENT}>None</SelectItem>
+                    <SelectItem value={NO_PARENT} label="None">None</SelectItem>
                     {parentOptions.map((p) => (
-                      <SelectItem key={p.categoryId} value={p.categoryId}>
+                      <SelectItem key={p.categoryId} value={p.categoryId} label={p.categoryName}>
                         {p.categoryName}
                       </SelectItem>
                     ))}

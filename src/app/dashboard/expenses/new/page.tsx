@@ -132,7 +132,7 @@ export default function NewExpensePage() {
                     <SelectGroup key={group}>
                       <SelectLabel>{group}</SelectLabel>
                       {cats.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
+                        <SelectItem key={cat.id} value={cat.id} label={cat.parent ? `${cat.parent.name} > ${cat.name}` : cat.name}>
                           {cat.parent
                             ? `${cat.parent.name} > ${cat.name}`
                             : cat.name}

@@ -267,7 +267,7 @@ export default function ExpensesPage() {
                       <SelectGroup key={group}>
                         <SelectLabel>{group}</SelectLabel>
                         {cats.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
+                          <SelectItem key={cat.id} value={cat.id} label={categoryLabel(cat)}>
                             {categoryLabel(cat)}
                           </SelectItem>
                         ))}
@@ -328,14 +328,14 @@ export default function ExpensesPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={ALL_CATEGORIES}>
+                  <SelectItem value={ALL_CATEGORIES} label="All Categories">
                     All Categories
                   </SelectItem>
                   {Object.entries(grouped).map(([group, cats]) => (
                     <SelectGroup key={group}>
                       <SelectLabel>{group}</SelectLabel>
                       {cats.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
+                        <SelectItem key={cat.id} value={cat.id} label={categoryLabel(cat)}>
                           {categoryLabel(cat)}
                         </SelectItem>
                       ))}
@@ -433,7 +433,7 @@ export default function ExpensesPage() {
                                 <SelectGroup key={group}>
                                   <SelectLabel>{group}</SelectLabel>
                                   {cats.map((cat) => (
-                                    <SelectItem key={cat.id} value={cat.id}>
+                                    <SelectItem key={cat.id} value={cat.id} label={categoryLabel(cat)}>
                                       {categoryLabel(cat)}
                                     </SelectItem>
                                   ))}

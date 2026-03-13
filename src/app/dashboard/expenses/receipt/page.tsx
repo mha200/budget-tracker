@@ -149,15 +149,15 @@ export default function ReceiptPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Take a photo of your receipt or upload an image. We&apos;ll extract
-              the merchant, amount, date, and items automatically.
+              Take a photo of your receipt, or upload an image or PDF. We&apos;ll
+              extract the merchant, amount, date, and items automatically.
             </p>
             <div className="space-y-2">
               <Label className="text-sm">Receipt Image</Label>
               <Input
                 ref={fileRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,.pdf,application/pdf"
                 capture="environment"
                 onChange={handleFileChange}
                 className="cursor-pointer"

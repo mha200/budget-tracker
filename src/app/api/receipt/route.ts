@@ -24,10 +24,11 @@ export async function POST(request: NextRequest) {
   }
 
   // Validate file type
-  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-  if (!allowedTypes.includes(file.type)) {
+  const imageTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  const isPdf = file.type === "application/pdf";
+  if (!imageTypes.includes(file.type) && !isPdf) {
     return NextResponse.json(
-      { error: "Please upload a JPEG, PNG, WebP, or GIF image" },
+      { error: "Please upload a JPEG, PNG, WebP, GIF image or a PDF" },
       { status: 400 }
     );
   }
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
   // Validate file size (max 10MB)
   if (file.size > 10 * 1024 * 1024) {
     return NextResponse.json(
-      { error: "Image must be under 10MB" },
+      { error: "File must be under 10MB" },
       { status: 400 }
     );
   }
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
   // Convert to base64
   const bytes = await file.arrayBuffer();
   const base64 = Buffer.from(bytes).toString("base64");
-  const mediaType = file.type as "image/jpeg" | "image/png" | "image/webp" | "image/gif";
+  const mediaType = file.type as "image/jpeg" | "image/png" | "image/webp" | "image/gif" | "application/pdf";
 
   // Fetch categories for matching
   const categories = await prisma.category.findMany({
@@ -74,10 +75,15 @@ export async function POST(request: NextRequest) {
         {
           role: "user",
           content: [
-            {
-              type: "image",
-              source: { type: "base64", media_type: mediaType, data: base64 },
-            },
+            isPdf
+              ? {
+                  type: "document" as const,
+                  source: { type: "base64" as const, media_type: "application/pdf" as const, data: base64 },
+                }
+              : {
+                  type: "image" as const,
+                  source: { type: "base64" as const, media_type: mediaType as "image/jpeg" | "image/png" | "image/webp" | "image/gif", data: base64 },
+                },
             {
               type: "text",
               text: `Extract the receipt details from this image. Return a JSON object with these fields:

@@ -80,7 +80,9 @@ const addCategorySchema = z.object({
 export async function addCategory(
   name: string,
   type: string,
-  parentId?: string
+  parentId?: string,
+  monthlyAmount?: number,
+  year?: number
 ): Promise<{ error?: string; success?: boolean; categoryId?: string }> {
   const session = await auth();
   if (!session?.user) return { error: "Not authenticated" };
@@ -100,6 +102,18 @@ export async function addCategory(
       sort,
     },
   });
+
+  // Create MasterBudget record if an amount was provided
+  if (monthlyAmount && monthlyAmount > 0 && year) {
+    const annualAmount = Math.round(monthlyAmount * 12 * 100) / 100;
+    await prisma.masterBudget.create({
+      data: {
+        categoryId: cat.id,
+        year,
+        amount: annualAmount,
+      },
+    });
+  }
 
   revalidatePath("/dashboard/budget");
   return { success: true, categoryId: cat.id };

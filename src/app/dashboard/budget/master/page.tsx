@@ -193,6 +193,7 @@ export default function MasterBudgetPage() {
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState("variable");
   const [newParentId, setNewParentId] = useState("");
+  const [newAmount, setNewAmount] = useState("");
   const NO_PARENT = "__none__";
 
   function loadData() {
@@ -249,7 +250,9 @@ export default function MasterBudgetPage() {
       const result = await addCategory(
         newName,
         newType,
-        newParentId && newParentId !== NO_PARENT ? newParentId : undefined
+        newParentId && newParentId !== NO_PARENT ? newParentId : undefined,
+        newAmount ? Number(newAmount) : undefined,
+        year
       );
       if (result.error) {
         toast.error(result.error);
@@ -257,6 +260,7 @@ export default function MasterBudgetPage() {
         toast.success(`Added ${newName}`);
         setNewName("");
         setNewParentId("");
+        setNewAmount("");
         setShowAdd(false);
         loadData();
       }
@@ -334,6 +338,18 @@ export default function MasterBudgetPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-sm">Monthly Budget</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={newAmount}
+                  onChange={(e) => setNewAmount(e.target.value)}
+                  placeholder="0.00"
+                  className="w-32"
+                />
               </div>
               <div className="space-y-1">
                 <Label className="text-sm">Parent (optional)</Label>

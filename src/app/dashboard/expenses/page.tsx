@@ -327,7 +327,7 @@ export default function ExpensesPage() {
                 <DescriptionAutocomplete
                   value={addDescription}
                   onChange={setAddDescription}
-                  onSelect={splitMode ? undefined : handleSuggestionSelect}
+                  onSelect={splitMode ? () => {} : handleSuggestionSelect}
                   placeholder="Start typing to see past transactions..."
                   autoFocus
                   onKeyDown={(e) => {

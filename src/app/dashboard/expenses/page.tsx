@@ -15,8 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, Pencil, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { getExpenses, getCategories, deleteExpense, updateExpense, createExpense } from "./actions";
+import { Plus, Trash2, Pencil, Check, X, ChevronLeft, ChevronRight, Split, Minus } from "lucide-react";
+import { getExpenses, getCategories, deleteExpense, updateExpense, createExpense, createSplitExpense } from "./actions";
 import { DescriptionAutocomplete } from "@/components/description-autocomplete";
 
 type Category = {
@@ -69,6 +69,13 @@ export default function ExpensesPage() {
   const [addCategory, setAddCategory] = useState("");
   const [addDate, setAddDate] = useState(formatDateValue(new Date()));
   const [addDescription, setAddDescription] = useState("");
+
+  // Split mode
+  const [splitMode, setSplitMode] = useState(false);
+  const [splitLines, setSplitLines] = useState<{ categoryId: string; amount: string }[]>([
+    { categoryId: "", amount: "" },
+    { categoryId: "", amount: "" },
+  ]);
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -165,6 +172,10 @@ export default function ExpensesPage() {
   }
 
   function handleInlineAdd() {
+    if (splitMode) {
+      handleSplitAdd();
+      return;
+    }
     const formData = new FormData();
     formData.set("amount", addAmount);
     formData.set("categoryId", addCategory);
@@ -177,15 +188,59 @@ export default function ExpensesPage() {
         toast.error(result.error);
       } else {
         toast.success("Transaction added!");
-        setAddAmount("");
-        setAddCategory("");
-        setAddDate(formatDateValue(new Date()));
-        setAddDescription("");
-        setShowAdd(false);
+        resetAddForm();
         loadExpenses();
       }
     });
   }
+
+  function handleSplitAdd() {
+    const lines = splitLines
+      .filter((l) => l.categoryId && l.amount)
+      .map((l) => ({ categoryId: l.categoryId, amount: Number(l.amount) }));
+
+    if (lines.length < 2) {
+      toast.error("A split needs at least 2 lines with category and amount");
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await createSplitExpense(addDate, addDescription, lines);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Split transaction added!");
+        resetAddForm();
+        loadExpenses();
+      }
+    });
+  }
+
+  function resetAddForm() {
+    setAddAmount("");
+    setAddCategory("");
+    setAddDate(formatDateValue(new Date()));
+    setAddDescription("");
+    setSplitMode(false);
+    setSplitLines([{ categoryId: "", amount: "" }, { categoryId: "", amount: "" }]);
+    setShowAdd(false);
+  }
+
+  function updateSplitLine(index: number, field: "categoryId" | "amount", value: string) {
+    setSplitLines((prev) => prev.map((l, i) => (i === index ? { ...l, [field]: value } : l)));
+  }
+
+  function addSplitLine() {
+    setSplitLines((prev) => [...prev, { categoryId: "", amount: "" }]);
+  }
+
+  function removeSplitLine(index: number) {
+    if (splitLines.length <= 2) return;
+    setSplitLines((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  const splitTotal = splitLines.reduce((sum, l) => sum + (Number(l.amount) || 0), 0);
+  const splitRemaining = addAmount ? Number(addAmount) - splitTotal : 0;
 
   // Build category options (leaf only, grouped by type)
   const typeLabels: Record<string, string> = {
@@ -252,7 +307,18 @@ export default function ExpensesPage() {
       {showAdd && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Quick Add</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Quick Add</CardTitle>
+              <Button
+                variant={splitMode ? "default" : "outline"}
+                size="xs"
+                className="gap-1.5"
+                onClick={() => setSplitMode(!splitMode)}
+              >
+                <Split className="size-3.5" />
+                Split
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -261,21 +327,24 @@ export default function ExpensesPage() {
                 <DescriptionAutocomplete
                   value={addDescription}
                   onChange={setAddDescription}
-                  onSelect={handleSuggestionSelect}
+                  onSelect={splitMode ? undefined : handleSuggestionSelect}
                   placeholder="Start typing to see past transactions..."
                   autoFocus
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && addAmount && addCategory) handleInlineAdd();
-                    if (e.key === "Escape") setShowAdd(false);
+                    if (e.key === "Enter" && !splitMode && addAmount && addCategory) handleInlineAdd();
+                    if (e.key === "Escape") resetAddForm();
                   }}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Past matches will auto-fill amount and category
-                </p>
+                {!splitMode && (
+                  <p className="text-xs text-muted-foreground">
+                    Past matches will auto-fill amount and category
+                  </p>
+                )}
               </div>
+
               <div className="flex flex-wrap gap-3 items-end">
                 <div className="space-y-1">
-                  <Label className="text-sm">Amount</Label>
+                  <Label className="text-sm">{splitMode ? "Total Amount" : "Amount"}</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -286,29 +355,31 @@ export default function ExpensesPage() {
                     className="w-28"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-sm">Category</Label>
-                  <Select
-                    value={addCategory}
-                    onValueChange={(val) => setAddCategory(val ?? "")}
-                  >
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Select..." displayValue={addCategory ? getCategoryLabelById(addCategory) : undefined} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(grouped).map(([group, cats]) => (
-                        <SelectGroup key={group}>
-                          <SelectLabel>{group}</SelectLabel>
-                          {cats.map((cat) => (
-                            <SelectItem key={cat.id} value={cat.id} label={categoryLabel(cat)}>
-                              {categoryLabel(cat)}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {!splitMode && (
+                  <div className="space-y-1">
+                    <Label className="text-sm">Category</Label>
+                    <Select
+                      value={addCategory}
+                      onValueChange={(val) => setAddCategory(val ?? "")}
+                    >
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select..." displayValue={addCategory ? getCategoryLabelById(addCategory) : undefined} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(grouped).map(([group, cats]) => (
+                          <SelectGroup key={group}>
+                            <SelectLabel>{group}</SelectLabel>
+                            {cats.map((cat) => (
+                              <SelectItem key={cat.id} value={cat.id} label={categoryLabel(cat)}>
+                                {categoryLabel(cat)}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div className="space-y-1">
                   <Label className="text-sm">Date</Label>
                   <Input
@@ -319,16 +390,92 @@ export default function ExpensesPage() {
                   />
                 </div>
               </div>
+
+              {/* Split lines */}
+              {splitMode && (
+                <div className="space-y-2 border-t pt-3">
+                  <Label className="text-sm font-medium">Split between categories</Label>
+                  {splitLines.map((line, i) => (
+                    <div key={i} className="flex gap-2 items-end">
+                      <div className="space-y-1 flex-1">
+                        {i === 0 && <Label className="text-xs text-muted-foreground">Category</Label>}
+                        <Select
+                          value={line.categoryId}
+                          onValueChange={(val) => updateSplitLine(i, "categoryId", val ?? "")}
+                        >
+                          <SelectTrigger className="h-8">
+                            <SelectValue placeholder="Select..." displayValue={line.categoryId ? getCategoryLabelById(line.categoryId) : undefined} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(grouped).map(([group, cats]) => (
+                              <SelectGroup key={group}>
+                                <SelectLabel>{group}</SelectLabel>
+                                {cats.map((cat) => (
+                                  <SelectItem key={cat.id} value={cat.id} label={categoryLabel(cat)}>
+                                    {categoryLabel(cat)}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        {i === 0 && <Label className="text-xs text-muted-foreground">Amount</Label>}
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          value={line.amount}
+                          onChange={(e) => updateSplitLine(i, "amount", e.target.value)}
+                          placeholder="0.00"
+                          className="w-28 h-8"
+                        />
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        className="text-muted-foreground hover:text-destructive"
+                        onClick={() => removeSplitLine(i)}
+                        disabled={splitLines.length <= 2}
+                      >
+                        <Minus className="size-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between">
+                    <Button variant="outline" size="xs" className="gap-1" onClick={addSplitLine}>
+                      <Plus className="size-3.5" />
+                      Add Line
+                    </Button>
+                    <div className="text-sm text-muted-foreground">
+                      Allocated: <span className="font-medium text-foreground">{formatAmount(splitTotal)}</span>
+                      {addAmount && splitRemaining !== 0 && (
+                        <span className={`ml-2 ${splitRemaining > 0 ? "text-amber-600" : "text-red-600"}`}>
+                          ({splitRemaining > 0 ? `${formatAmount(splitRemaining)} remaining` : `${formatAmount(Math.abs(splitRemaining))} over`})
+                        </span>
+                      )}
+                      {addAmount && splitRemaining === 0 && (
+                        <span className="ml-2 text-green-600">Balanced</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex gap-2 mt-3">
               <Button
                 size="sm"
                 onClick={handleInlineAdd}
-                disabled={!addAmount || !addCategory || isPending}
+                disabled={
+                  splitMode
+                    ? !addDate || splitLines.filter((l) => l.categoryId && l.amount).length < 2 || isPending
+                    : !addAmount || !addCategory || isPending
+                }
               >
-                Add
+                {splitMode ? "Add Split" : "Add"}
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => setShowAdd(false)}>
+              <Button size="sm" variant="ghost" onClick={resetAddForm}>
                 Cancel
               </Button>
             </div>

@@ -180,6 +180,63 @@ export async function searchPastTransactions(query: string) {
     }));
 }
 
+const splitLineSchema = z.object({
+  categoryId: z.string().min(1, "Category is required"),
+  amount: z.coerce.number().positive("Amount must be positive"),
+});
+
+export async function createSplitExpense(
+  date: string,
+  description: string,
+  lines: { categoryId: string; amount: number }[]
+): Promise<{ error?: string; success?: boolean }> {
+  const session = await auth();
+  if (!session?.user) return { error: "Not authenticated" };
+
+  if (lines.length < 2) return { error: "A split needs at least 2 lines" };
+
+  const parsedDate = z.coerce.date().safeParse(date);
+  if (!parsedDate.success) return { error: "Invalid date" };
+
+  for (const line of lines) {
+    const parsed = splitLineSchema.safeParse(line);
+    if (!parsed.success) return { error: parsed.error.issues[0].message };
+  }
+
+  // Verify all categories exist
+  const categoryIds = lines.map((l) => l.categoryId);
+  const cats = await prisma.category.findMany({
+    where: { id: { in: categoryIds } },
+    include: { parent: true },
+  });
+  if (cats.length !== new Set(categoryIds).size) {
+    return { error: "One or more invalid categories" };
+  }
+
+  // Build category labels for the description
+  const catLabels = lines.map((l) => {
+    const cat = cats.find((c) => c.id === l.categoryId)!;
+    const label = cat.parent ? `${cat.parent.name} > ${cat.name}` : cat.name;
+    return `${label}: $${l.amount.toFixed(2)}`;
+  });
+  const splitNote = `${description || "Split"} [${catLabels.join(", ")}]`;
+
+  // Create all expense records
+  await prisma.expense.createMany({
+    data: lines.map((l) => ({
+      amount: l.amount,
+      categoryId: l.categoryId,
+      date: parsedDate.data,
+      description: splitNote,
+      source: "manual" as const,
+    })),
+  });
+
+  revalidatePath("/dashboard/expenses");
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
 export async function deleteExpense(
   id: string
 ): Promise<{ error?: string; success?: boolean }> {

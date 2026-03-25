@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Rollover only considers months from this date onward
+const ROLLOVER_START_YEAR = 2026;
+const ROLLOVER_START_MONTH = 3; // March
+
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
   if (!token || token !== process.env.LIZZIE_API_TOKEN) {
@@ -12,7 +16,8 @@ export async function GET(req: NextRequest) {
   const month = now.getMonth() + 1;
   const startOfMonth = new Date(year, month - 1, 1);
   const endOfMonth = new Date(year, month, 0, 23, 59, 59);
-  const yearStart = new Date(year, 0, 1);
+  const rolloverFirstMonth = year === ROLLOVER_START_YEAR ? ROLLOVER_START_MONTH : (year > ROLLOVER_START_YEAR ? 1 : month);
+  const rolloverStart = new Date(year, rolloverFirstMonth - 1, 1);
   const priorMonthEnd = new Date(year, month - 1, 0, 23, 59, 59);
 
   // Fetch categories
@@ -45,11 +50,11 @@ export async function GET(req: NextRequest) {
 
   // Prior months spending for rollover
   let priorSpendMap = new Map<string, number>();
-  if (month > 1) {
+  if (month > rolloverFirstMonth) {
     const priorExpenses = await prisma.expense.groupBy({
       by: ["categoryId"],
       _sum: { amount: true },
-      where: { date: { gte: yearStart, lte: priorMonthEnd } },
+      where: { date: { gte: rolloverStart, lte: priorMonthEnd } },
     });
     priorSpendMap = new Map(
       priorExpenses.map((e) => [e.categoryId, e._sum.amount || 0])
@@ -63,9 +68,10 @@ export async function GET(req: NextRequest) {
     const monthlyRate = currentOverride !== undefined ? currentOverride : (master !== undefined ? master / 12 : 0);
 
     let rollover = 0;
-    if (month > 1 && monthlyRate > 0) {
+    const firstRolloverMonth = year === ROLLOVER_START_YEAR ? ROLLOVER_START_MONTH : (year > ROLLOVER_START_YEAR ? 1 : month);
+    if (month > firstRolloverMonth && monthlyRate > 0) {
       let cumulativePriorBudget = 0;
-      for (let m = 1; m < month; m++) {
+      for (let m = firstRolloverMonth; m < month; m++) {
         const mOverride = overrideMap.get(`${cat.id}-${m}`);
         cumulativePriorBudget += mOverride !== undefined ? mOverride : (master !== undefined ? master / 12 : 0);
       }

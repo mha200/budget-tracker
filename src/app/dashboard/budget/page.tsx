@@ -279,6 +279,11 @@ export default function BudgetPage() {
                       </td>
                       <td className={`py-2.5 text-right ${item.isParent ? "font-semibold" : ""}`}>
                         {formatAmount(item.budgeted)}
+                        {!item.isParent && item.rollover !== 0 && (
+                          <div className={`text-xs ${item.rollover > 0 ? "text-blue-600" : "text-amber-600"}`}>
+                            {item.rollover > 0 ? "+" : ""}{formatAmount(item.rollover)} rollover
+                          </div>
+                        )}
                       </td>
                       <td className={`py-2.5 text-right ${item.isParent ? "font-semibold" : ""}`}>
                         {!item.isParent && editingCategoryId === item.categoryId ? (

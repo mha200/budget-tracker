@@ -147,10 +147,14 @@ function BudgetRow({
           renderEditInput()
         ) : (
           <button
-            className="hover:underline cursor-pointer text-right"
+            className="hover:underline cursor-pointer text-right hover:text-primary transition-colors"
             onClick={() => startEdit("monthly")}
           >
-            {editingCol === "annual" ? formatAmount(previewMonthly) : formatAmount(monthlyAmount)}
+            {editingCol === "annual"
+              ? formatAmount(previewMonthly)
+              : row.annualAmount === 0
+                ? "Click to set"
+                : formatAmount(monthlyAmount)}
           </button>
         )}
       </td>
@@ -161,10 +165,14 @@ function BudgetRow({
           renderEditInput()
         ) : (
           <button
-            className="hover:underline cursor-pointer text-right text-muted-foreground"
+            className="hover:underline cursor-pointer text-right text-muted-foreground hover:text-primary transition-colors"
             onClick={() => startEdit("annual")}
           >
-            {editingCol === "monthly" ? formatAmount(previewAnnual) : formatAmount(row.annualAmount)}
+            {editingCol === "monthly"
+              ? formatAmount(previewAnnual)
+              : row.annualAmount === 0
+                ? "Click to set"
+                : formatAmount(row.annualAmount)}
           </button>
         )}
       </td>
